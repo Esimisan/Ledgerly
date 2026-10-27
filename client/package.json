@@ -7,10 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check:colors": "node scripts/check-colors.mjs"
   },
   "dependencies": {
+    "@fontsource-variable/dm-sans": "^5.3.0",
     "@supabase/supabase-js": "^2.118.0",
+    "lucide-react": "^1.62.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.4"
