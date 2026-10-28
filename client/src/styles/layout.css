@@ -125,11 +125,13 @@
 /* ---------- Main area ---------- */
 .main {
   padding: var(--space-4) var(--space-4) var(--space-10);
+  min-width: 0;
 }
 .main__inner {
   max-width: var(--content-max);
   margin-inline: auto;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-5);
 }
 
@@ -146,10 +148,16 @@
   gap: var(--space-3);
   min-width: 0;
 }
+
+.page-header__title {
+  min-width: 0;
+}
+
 .page-header__title h1 {
   font-size: var(--text-2xl);
   font-weight: 500;
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 .page-header__title p {
   margin-top: 0.25rem;
@@ -158,8 +166,10 @@
 .page-header__actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--space-3);
-  margin-left: auto;
+  width: 100%;
+  min-width: 0;
 }
 
 .month-picker {
@@ -167,6 +177,8 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
   height: 2.5rem;
   padding: 0 0.75rem;
   border: 1px solid var(--border);
@@ -182,6 +194,8 @@
   border: 0;
   outline: none;
   background: transparent;
+  width: 100%;
+  min-width: 0;
   padding-right: 1.25rem;
   cursor: pointer;
   color: var(--text);
@@ -296,6 +310,17 @@
   }
   .user-chip__text {
     display: block;
+  }
+
+  .page-header__actions {
+    width: auto;
+    margin-left: auto;
+  }
+  .month-picker {
+    flex: none;
+  }
+  .month-picker select {
+    width: auto;
   }
 }
 
