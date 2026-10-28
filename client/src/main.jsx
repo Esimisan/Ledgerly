@@ -7,6 +7,7 @@ import "./styles/base.css";
 import "./styles/ui.css";
 import "./styles/layout.css";
 import "./styles/auth.css";
+import "./styles/products.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import App from "./App";

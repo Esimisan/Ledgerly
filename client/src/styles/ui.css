@@ -107,6 +107,22 @@
   width: 100%;
 }
 
+.btn--danger {
+  background: var(--danger);
+  color: var(--on-danger);
+}
+.btn--danger:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+.btn--danger-outline {
+  background: transparent;
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.btn--danger-outline:hover:not(:disabled) {
+  background: var(--danger-soft);
+}
+
 .icon-btn {
   display: inline-grid;
   place-items: center;

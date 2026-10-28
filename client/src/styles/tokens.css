@@ -66,6 +66,7 @@
   --warning-soft: #fdeedd;
   --danger: #c93b3b;
   --danger-soft: #fce8e8;
+  --on-danger: #ffffff;
 
   --chart-1: #5b21b6;
   --chart-1-fill: rgb(91 33 182 / 0.14);
@@ -107,6 +108,7 @@
   --warning-soft: #3a2312;
   --danger: #f87171;
   --danger-soft: #3a1b1f;
+  --on-danger: #2a0e12;
 
   --chart-1: #a78bfa;
   --chart-1-fill: rgb(167 139 250 / 0.18);

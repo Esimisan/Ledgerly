@@ -1,3 +1,5 @@
+import ProductsPage from "./pages/products/ProductsPage";
+import ProductFormPage from "./pages/products/ProductFormPage";
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
 import AppShell from "./components/layout/AppShell";
@@ -20,6 +22,9 @@ const DesignKit = import.meta.env.DEV
   ? lazy(() => import("./pages/dev/DesignKit"))
   : null;
 
+const ThemeCompare = import.meta.env.DEV
+  ? lazy(() => import("./pages/dev/ThemeCompare"))
+  : null;
 export default function App() {
   return (
     <Routes>
@@ -35,16 +40,14 @@ export default function App() {
       <Route element={<RequireBusiness />}>
         <Route element={<AppShell />}>
           <Route index element={<Overview />} />
-          <Route
-            path="products"
-            element={
-              <Placeholder
-                title="Products"
-                subtitle="Your catalogue"
-                step={5}
-              />
-            }
-          />
+          <Route path="products" element={<ProductsPage />} />
+          <Route element={<RequirePermission permission="products.write" />}>
+            <Route path="products/new" element={<ProductFormPage />} />
+            <Route
+              path="products/:productId/edit"
+              element={<ProductFormPage />}
+            />
+          </Route>
           <Route
             path="inventory"
             element={
@@ -117,6 +120,17 @@ export default function App() {
               element={
                 <Suspense fallback={<FullPageLoader />}>
                   <DesignKit />
+                </Suspense>
+              }
+            />
+          )}
+
+          {ThemeCompare && (
+            <Route
+              path="theme-compare"
+              element={
+                <Suspense fallback={<FullPageLoader />}>
+                  <ThemeCompare />
                 </Suspense>
               }
             />

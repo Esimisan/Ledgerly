@@ -10,8 +10,12 @@ import {
 const KEY = "ledgerly-theme";
 const ThemeContext = createContext(null);
 const media = () => window.matchMedia("(prefers-color-scheme: dark)");
+const forcedParam = new URLSearchParams(window.location.search).get("theme");
+const FORCED =
+  forcedParam === "light" || forcedParam === "dark" ? forcedParam : null;
 
 function readPreference() {
+  if (FORCED) return FORCED;
   try {
     const v = localStorage.getItem(KEY);
     return v === "light" || v === "dark" || v === "system" ? v : "system";
@@ -43,6 +47,7 @@ export function ThemeProvider({ children }) {
 
   // Keep multiple open tabs in sync.
   useEffect(() => {
+    if (FORCED) return;
     const onStorage = (e) => {
       if (e.key === KEY) setPreference(readPreference());
     };
@@ -51,10 +56,12 @@ export function ThemeProvider({ children }) {
   }, []);
 
   const choose = useCallback((next) => {
-    try {
-      localStorage.setItem(KEY, next);
-    } catch {
-      /* private mode: still works for this visit */
+    if (!FORCED) {
+      try {
+        localStorage.setItem(KEY, next);
+      } catch {
+        /* private mode: still works for this visit */
+      }
     }
     setPreference(next);
   }, []);

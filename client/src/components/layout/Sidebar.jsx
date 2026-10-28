@@ -90,6 +90,14 @@ export default function Sidebar() {
                 </NavLink>
               </li>
             )}
+
+            {import.meta.env.DEV && (
+              <li>
+                <NavLink to="/theme-compare" className="nav__link">
+                  <span>Theme compare (dev)</span>
+                </NavLink>
+              </li>
+            )}
           </ul>
         </div>
       </aside>

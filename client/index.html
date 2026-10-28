@@ -8,11 +8,17 @@
     />
     <meta name="color-scheme" content="light dark" />
     <title>Ledgerly</title>
+
     <script>
+      // Runs before first paint so the page never flashes the wrong theme.
       (function () {
         var theme = "light";
         try {
-          var pref = localStorage.getItem("ledgerly-theme") || "system";
+          var forced = new URLSearchParams(location.search).get("theme");
+          var pref =
+            forced === "light" || forced === "dark"
+              ? forced
+              : localStorage.getItem("ledgerly-theme") || "system";
           var dark =
             pref === "dark" ||
             (pref === "system" &&
