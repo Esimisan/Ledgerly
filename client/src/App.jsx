@@ -16,6 +16,7 @@ import Onboarding from "./pages/auth/Onboarding";
 import Overview from "./pages/Overview";
 import Placeholder from "./pages/Placeholder";
 import { NotFound } from "./pages/Status";
+import SuppliersPage from "./pages/suppliers/SuppliersPage";
 
 // Dev-only: not included in production builds.
 const DesignKit = import.meta.env.DEV
@@ -40,6 +41,7 @@ export default function App() {
       <Route element={<RequireBusiness />}>
         <Route element={<AppShell />}>
           <Route index element={<Overview />} />
+
           <Route path="products" element={<ProductsPage />} />
           <Route element={<RequirePermission permission="products.write" />}>
             <Route path="products/new" element={<ProductFormPage />} />
@@ -58,10 +60,7 @@ export default function App() {
               />
             }
           />
-          <Route
-            path="inventory/suppliers"
-            element={<Placeholder title="Suppliers" step={6} />}
-          />
+          <Route path="inventory/suppliers" element={<SuppliersPage />} />
           <Route element={<RequirePermission permission="purchases.manage" />}>
             <Route
               path="inventory/purchase-orders"

@@ -11,6 +11,7 @@ import "./styles/products.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AuthProvider } from "./context/AuthContext";
 import App from "./App";
+import "./styles/suppliers.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

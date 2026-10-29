@@ -1,0 +1,28 @@
+/* ---- Suppliers page: small additions only. Everything else reuses products.css ---- */
+.supplier-cell {
+  min-width: 0;
+  text-align: left;
+}
+.supplier-cell__name {
+  font-weight: 500;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.supplier-cell__sub {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.is-inactive .supplier-cell__name {
+  color: var(--text-muted);
+}
+.cell-wrap {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

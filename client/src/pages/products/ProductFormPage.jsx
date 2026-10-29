@@ -97,15 +97,17 @@ function ProductForm({ productId }) {
   const [busy, setBusy] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
+  // Active suppliers, plus this product's current supplier even if it was deactivated.
+  const currentSupplierId = product?.supplier_id ?? null;
   useEffect(() => {
     let cancelled = false;
-    listSupplierOptions(businessId).then(({ data }) => {
+    listSupplierOptions(businessId, currentSupplierId).then(({ data }) => {
       if (!cancelled) setSuppliers(data ?? []);
     });
     return () => {
       cancelled = true;
     };
-  }, [businessId]);
+  }, [businessId, currentSupplierId]);
 
   useEffect(() => {
     if (!isEdit) return;
@@ -209,6 +211,17 @@ function ProductForm({ productId }) {
     (c) => c.is_active || c.id === form.category_id,
   );
 
+  const selectedSupplier = suppliers.find((s) => s.id === form.supplier_id);
+  const activeSupplierCount = suppliers.filter(
+    (s) => s.is_active !== false,
+  ).length;
+  let supplierHint;
+  if (selectedSupplier && selectedSupplier.is_active === false)
+    supplierHint =
+      "This supplier is inactive. You can keep it or choose another.";
+  else if (activeSupplierCount === 0)
+    supplierHint =
+      "No active suppliers yet. Add them under Inventory › Suppliers.";
   if (loading) {
     return (
       <>
@@ -384,16 +397,13 @@ function ProductForm({ productId }) {
               label="Supplier"
               value={form.supplier_id}
               onChange={set("supplier_id")}
-              hint={
-                suppliers.length === 0
-                  ? "No suppliers yet. You will add them in the Inventory section soon."
-                  : undefined
-              }
+              hint={supplierHint}
             >
               <option value="">No supplier</option>
               {suppliers.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
+                  {s.is_active === false ? " (inactive)" : ""}
                 </option>
               ))}
             </Field>
