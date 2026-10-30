@@ -323,3 +323,15 @@ textarea.input {
   font-size: var(--text-sm);
   color: var(--text-muted);
 }
+
+/* ---- Explanatory note inside forms ---- */
+.info-note {
+  padding: var(--space-3) var(--space-4);
+  background: var(--accent-soft);
+  color: var(--text);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+}
+.info-note .link-btn {
+  font-weight: 500;
+}

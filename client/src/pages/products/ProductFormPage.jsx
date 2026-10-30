@@ -42,11 +42,17 @@ const toForm = (p) => ({
 
 const toNumber = (s) => Number(String(s).replace(/,/g, ""));
 
+const UNIT_BAD_CHAR = /[^\p{L} ]/u; // anything that is not a letter or a space
+const UNIT_MESSAGE =
+  "Letters only. The unit is the word you count in (pcs, kg, box). How many you have is set in Inventory.";
+
 // Returns { errors, fields }. `fields` holds only columns the database lets the app write.
 function validate(f) {
   const errors = {};
+  const unit = f.unit.trim().replace(/\s+/g, " ");
   if (!f.name.trim()) errors.name = "Enter a product name.";
-  if (!f.unit.trim()) errors.unit = "Enter a unit, such as pcs or kg.";
+  if (!unit) errors.unit = "Enter a unit, such as pcs or kg.";
+  else if (UNIT_BAD_CHAR.test(unit)) errors.unit = UNIT_MESSAGE;
 
   const cost = toNumber(f.cost_price);
   const price = toNumber(f.selling_price);
@@ -65,7 +71,7 @@ function validate(f) {
       sku: f.sku.trim() || null,
       barcode: f.barcode.trim() || null,
       description: f.description.trim() || null,
-      unit: f.unit.trim(),
+      unit,
       cost_price: Math.round(cost * 100) / 100,
       selling_price: Math.round(price * 100) / 100,
       min_stock_level: min,
@@ -135,6 +141,16 @@ function ProductForm({ productId }) {
 
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
+  // The unit is a word (pcs, kg, box). Anything else is removed as you type, with a short explanation.
+  function onUnitChange(e) {
+    const raw = e.target.value;
+    setForm((f) => ({ ...f, unit: raw.replace(/[^\p{L} ]/gu, "") }));
+    setErrors((prev) => ({
+      ...prev,
+      unit: UNIT_BAD_CHAR.test(raw) ? UNIT_MESSAGE : undefined,
+    }));
+  }
+
   async function onPickImage(file) {
     setImageError("");
     try {
@@ -184,7 +200,13 @@ function ProductForm({ productId }) {
         removeImage,
         previousPath: product?.image_path ?? null,
       });
-      navigate("/products");
+      navigate("/products", {
+        state: isEdit
+          ? undefined
+          : {
+              notice: `“${fields.name}” was added. To record how many you have, open Inventory and choose Update stock.`,
+            },
+      });
     } catch (err) {
       setFormError(productError(err));
       setBusy(false);
@@ -301,7 +323,7 @@ function ProductForm({ productId }) {
           </section>
 
           <section className="card form-section">
-            <h2>Pricing and stock</h2>
+            <h2>Pricing and units</h2>
             <div className="form-row form-row--3">
               <Field
                 label={`Cost price (${symbol})`}
@@ -325,16 +347,18 @@ function ProductForm({ productId }) {
                 value={form.min_stock_level}
                 onChange={set("min_stock_level")}
                 error={errors.min_stock_level}
-                hint="Warn me at or below this"
+                hint="Warn me when stock drops to this amount or below"
               />
             </div>
             <Field
-              label="Unit"
+              label="Unit of measure"
               list="unit-options"
               value={form.unit}
-              onChange={set("unit")}
+              onChange={onUnitChange}
               error={errors.unit}
-              hint="How you count it: pcs, kg, litre, box…"
+              maxLength={20}
+              autoComplete="off"
+              hint="The word you count this product in, such as pcs, kg, litre or box. Letters only, no numbers."
             />
             <datalist id="unit-options">
               {[
@@ -353,15 +377,31 @@ function ProductForm({ productId }) {
                 <option key={u} value={u} />
               ))}
             </datalist>
-            {isEdit && (
-              <p className="field__hint">
-                In stock:{" "}
-                <strong>
-                  {formatQty(product.quantity_on_hand)} {product.unit}
-                </strong>
-                . Stock changes through stock movements, not from this form.
-              </p>
-            )}
+            <div className="info-note">
+              {isEdit ? (
+                <p>
+                  In stock now:{" "}
+                  <strong>
+                    {formatQty(product.quantity_on_hand)} {product.unit}
+                  </strong>
+                  . To change how many you have, use{" "}
+                  <Link
+                    className="link-btn"
+                    to={`/inventory?q=${encodeURIComponent(product.name)}`}
+                  >
+                    Update stock in Inventory
+                  </Link>
+                  . This form never changes your stock.
+                </p>
+              ) : (
+                <p>
+                  <strong>Unit is not the quantity.</strong> It is only the word
+                  you count in. After you save this product, open{" "}
+                  <strong>Inventory</strong> and choose{" "}
+                  <strong>Update stock</strong> to enter how many you have.
+                </p>
+              )}
+            </div>
           </section>
         </div>
 
