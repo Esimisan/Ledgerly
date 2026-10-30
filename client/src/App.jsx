@@ -17,6 +17,7 @@ import Overview from "./pages/Overview";
 import Placeholder from "./pages/Placeholder";
 import { NotFound } from "./pages/Status";
 import SuppliersPage from "./pages/suppliers/SuppliersPage";
+import InventoryPage from "./pages/inventory/InventoryPage";
 
 // Dev-only: not included in production builds.
 const DesignKit = import.meta.env.DEV
@@ -50,16 +51,7 @@ export default function App() {
               element={<ProductFormPage />}
             />
           </Route>
-          <Route
-            path="inventory"
-            element={
-              <Placeholder
-                title="Inventory"
-                subtitle="Stock on hand and movements"
-                step={6}
-              />
-            }
-          />
+          <Route path="inventory" element={<InventoryPage />} />
           <Route path="inventory/suppliers" element={<SuppliersPage />} />
           <Route element={<RequirePermission permission="purchases.manage" />}>
             <Route

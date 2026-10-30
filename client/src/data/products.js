@@ -21,6 +21,11 @@ export const SORTS = {
     column: "quantity_on_hand",
     ascending: true,
   },
+  stock_desc: {
+    label: "Stock: high to low",
+    column: "quantity_on_hand",
+    ascending: false,
+  },
 };
 
 // Characters that would break PostgREST's or(...) syntax or act as wildcards.

@@ -6,3 +6,11 @@ export function formatMoney(value, symbol = "₦") {
 export function formatQty(value) {
   return Number(value ?? 0).toLocaleString("en", { maximumFractionDigits: 3 });
 }
+
+export function formatDateTime(value) {
+  if (!value) return "—";
+  return new Date(value).toLocaleString("en", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
