@@ -14,3 +14,8 @@ export function formatDateTime(value) {
     timeStyle: "short",
   });
 }
+
+export function formatDate(value) {
+  if (!value) return "—";
+  return new Date(value).toLocaleDateString("en", { dateStyle: "medium" });
+}

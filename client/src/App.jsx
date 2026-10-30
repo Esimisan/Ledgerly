@@ -18,6 +18,8 @@ import Placeholder from "./pages/Placeholder";
 import { NotFound } from "./pages/Status";
 import SuppliersPage from "./pages/suppliers/SuppliersPage";
 import InventoryPage from "./pages/inventory/InventoryPage";
+import CustomersPage from "./pages/customers/CustomersPage";
+import CustomerProfilePage from "./pages/customers/CustomerProfilePage";
 
 // Dev-only: not included in production builds.
 const DesignKit = import.meta.env.DEV
@@ -69,9 +71,10 @@ export default function App() {
               />
             }
           />
+          <Route path="customers" element={<CustomersPage />} />
           <Route
-            path="customers"
-            element={<Placeholder title="Customers" step={7} />}
+            path="customers/:customerId"
+            element={<CustomerProfilePage />}
           />
           <Route element={<RequirePermission permission="finance.view" />}>
             <Route
