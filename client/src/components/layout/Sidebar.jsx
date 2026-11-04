@@ -11,6 +11,10 @@ function NavItem({ item }) {
     (c) => !c.permission || can(c.permission),
   );
   const expanded = children.length > 0 && pathname.startsWith(item.to);
+  // True while one of the child pages is the open page.
+  const childActive = children.some(
+    (c) => pathname === c.to || pathname.startsWith(`${c.to}/`),
+  );
   const Icon = item.icon;
 
   return (
@@ -18,7 +22,7 @@ function NavItem({ item }) {
       {/* `end` so a parent isn't highlighted while one of its children is the active page */}
       <NavLink
         to={item.to}
-        end={item.to === "/" || children.length > 0}
+        end={item.to === "/" || childActive}
         className="nav__link"
       >
         <Icon size={18} aria-hidden="true" />

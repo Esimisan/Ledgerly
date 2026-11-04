@@ -20,6 +20,9 @@ import SuppliersPage from "./pages/suppliers/SuppliersPage";
 import InventoryPage from "./pages/inventory/InventoryPage";
 import CustomersPage from "./pages/customers/CustomersPage";
 import CustomerProfilePage from "./pages/customers/CustomerProfilePage";
+import DiscountsPage from "./pages/discounts/DiscountsPage";
+import SalesPage from "./pages/sales/SalesPage";
+import NewSalePage from "./pages/sales/NewSalePage";
 
 // Dev-only: not included in production builds.
 const DesignKit = import.meta.env.DEV
@@ -61,16 +64,18 @@ export default function App() {
               element={<Placeholder title="Purchase orders" step={10} />}
             />
           </Route>
+          <Route path="sales" element={<SalesPage />} />
+          <Route element={<RequirePermission permission="sales.create" />}>
+            <Route path="sales/new" element={<NewSalePage />} />
+          </Route>
           <Route
-            path="sales"
-            element={
-              <Placeholder
-                title="Sales"
-                subtitle="Orders, returns and receipts"
-                step={8}
-              />
-            }
+            path="sales/:saleId"
+            element={<Placeholder title="Sale" step={8} />}
           />
+
+          <Route element={<RequirePermission permission="discounts.manage" />}>
+            <Route path="sales/discounts" element={<DiscountsPage />} />
+          </Route>
           <Route path="customers" element={<CustomersPage />} />
           <Route
             path="customers/:customerId"

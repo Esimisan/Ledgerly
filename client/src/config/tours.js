@@ -1,5 +1,4 @@
 // First-visit tutorial text, kept as plain data (rule 11). The tutorial engine and
-// the Guide page arrive in Step 13; each step from 7 on only adds its pages here.
 // A step with a `permission` is shown only to roles that have it.
 export const TOURS = {
   customers: {
@@ -40,6 +39,72 @@ export const TOURS = {
         title: "Edit or deactivate",
         text: "Use Edit to correct contact details or notes. Deactivate hides the customer from new sales but keeps their records.",
         permission: "customers.write",
+      },
+    ],
+  },
+  discounts: {
+    title: "Discounts",
+    steps: [
+      {
+        title: "Promo codes",
+        text: "A promo code takes a percentage or a fixed amount off a whole sale. Your team types the code when recording a sale, and the price updates straight away.",
+      },
+      {
+        title: "Add a promo",
+        text: "Choose Add promo, give it a name and a code, then set the amount off. You can also add a minimum order, start and end dates, and a limit on how many times it can be used.",
+      },
+      {
+        title: "One discount at a time",
+        text: "Discounts never add up. If a customer already has a discount level, the sale uses whichever is larger, the promo or the customer's level.",
+      },
+      {
+        title: "Turn off, don't delete",
+        text: "Turn a promo off when you are done with it. Past sales keep their record, and you can turn it back on any time.",
+      },
+    ],
+  },
+
+  sales: {
+    title: "Sales",
+    steps: [
+      {
+        title: "Every sale in one place",
+        text: "Each sale appears here with its number, customer, total and whether anything is still owed. Click a sale number to open it and see the receipt.",
+      },
+      {
+        title: "Record a sale",
+        text: "Choose New sale to pick products, add a customer if you know who is buying, and take payment. Walk-in customers pay in full; saved customers can leave part of it on credit.",
+        permission: "sales.create",
+      },
+      {
+        title: "Find a sale",
+        text: "Search by sale number or customer, narrow by date, or switch on Money still owed to see sales that have not been fully paid.",
+      },
+      {
+        title: "Voided and returned sales",
+        text: "A sale that was cancelled shows as Voided and a sale with returned goods shows how many returns it has. Open the sale to see the details.",
+      },
+    ],
+  },
+  "new-sale": {
+    title: "Recording a sale",
+    steps: [
+      {
+        title: "Add products",
+        text: "Search by name or SKU, or scan a barcode, then click a product to add it. Click it again to add one more, or type a quantity in the cart.",
+      },
+      {
+        title: "Customer and discounts",
+        text: "Sales default to a walk-in customer. Search for a saved customer to apply their discount level or to sell on credit. A promo code can be typed in too, and only one discount applies to a sale.",
+      },
+      {
+        title: "Manual discount",
+        text: "Managers can tick Give a manual discount to enter a percentage or a fixed amount that replaces the automatic discounts.",
+        permission: "discounts.manage",
+      },
+      {
+        title: "Take payment",
+        text: "Use Pay in full, or split the amount across methods. For a saved customer, whatever is not paid now is added to their balance as credit. Walk-in sales must be paid in full.",
       },
     ],
   },

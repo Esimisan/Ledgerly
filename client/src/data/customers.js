@@ -185,3 +185,18 @@ export async function listLedger({ businessId, customerId, page = 1 }) {
 
   return { rows: data ?? [], total: count ?? 0, error: error?.message ?? "" };
 }
+// For the new-sale customer picker: active customers only, because the database
+// refuses to sell to an inactive one.
+export async function searchCustomers({ businessId, q = "", limit = 8 }) {
+  let query = supabase
+    .from("customers")
+    .select("id, name, phone, discount_percent, balance")
+    .eq("business_id", businessId)
+    .eq("is_active", true);
+
+  const term = cleanTerm(q);
+  if (term) query = query.or(`name.ilike.%${term}%,phone.ilike.%${term}%`);
+
+  const { data, error } = await query.order("name").order("id").limit(limit);
+  return { rows: data ?? [], error: error?.message ?? "" };
+}

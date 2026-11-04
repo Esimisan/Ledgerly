@@ -19,3 +19,12 @@ export function formatDate(value) {
   if (!value) return "—";
   return new Date(value).toLocaleDateString("en", { dateStyle: "medium" });
 }
+
+// "bank_transfer" -> "Bank transfer". Shows an enum value as readable words.
+export function humanize(value) {
+  return value
+    ? String(value)
+        .replace(/_/g, " ")
+        .replace(/^./, (c) => c.toUpperCase())
+    : "—";
+}

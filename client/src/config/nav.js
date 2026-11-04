@@ -25,7 +25,18 @@ export const MAIN_NAV = [
       },
     ],
   },
-  { to: "/sales", label: "Sales", icon: Receipt },
+  {
+    to: "/sales",
+    label: "Sales",
+    icon: Receipt,
+    children: [
+      {
+        to: "/sales/discounts",
+        label: "Discounts",
+        permission: "discounts.manage",
+      },
+    ],
+  },
   { to: "/customers", label: "Customers", icon: Users },
   {
     to: "/expenses",
