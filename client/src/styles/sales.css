@@ -231,3 +231,215 @@
   background: var(--success-soft);
   color: var(--success);
 }
+
+/* ---- Receipt (always paper-light via data-theme="light" on the element) ---- */
+.receipt-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.receipt {
+  width: 100%;
+  max-width: 34rem;
+  margin-inline: auto;
+  padding: var(--space-6);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+.receipt__head {
+  text-align: center;
+  display: grid;
+  gap: 0.25rem;
+}
+.receipt__business {
+  font-size: var(--text-lg);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+.receipt__title {
+  font-size: var(--text-xl);
+  font-weight: 500;
+}
+.receipt__meta {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.receipt__void {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-weight: 500;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.receipt__parties {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  padding-block: var(--space-3);
+  border-block: 1px solid var(--border);
+}
+.receipt__parties dt {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.receipt__parties dd {
+  margin: 0.125rem 0 0;
+  overflow-wrap: anywhere;
+}
+.receipt__lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.receipt__line {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+.receipt__line-main {
+  display: grid;
+  min-width: 0;
+}
+.receipt__name {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.receipt__sub {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.receipt__amount {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.receipt__totals {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+.receipt__note {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.receipt__thanks {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+/* ---- Returns on the sale page ---- */
+.return-card {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: minmax(0, 1fr);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.return-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.return-card__lines {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: grid;
+  gap: 0.25rem;
+  font-size: var(--text-sm);
+}
+
+/* ---- Return modal (wider than the standard modal) ---- */
+dialog.modal:has(.return-form) {
+  width: min(44rem, calc(100% - 2rem));
+}
+.return-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+.return-line {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.return-line__info {
+  display: grid;
+  min-width: 0;
+}
+.return-line__fields {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr);
+}
+.return-line__all {
+  justify-self: start;
+  font-size: var(--text-sm);
+}
+@media (min-width: 40em) {
+  .return-line__fields {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  }
+}
+
+/* ---- Printing: only the receipt goes on paper ---- */
+@media print {
+  .sidebar,
+  .backdrop,
+  .skip-link,
+  .page-header,
+  .no-print {
+    display: none !important;
+  }
+  .main {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .main__inner {
+    display: block;
+    max-width: none;
+  }
+  body {
+    background: none;
+  }
+  .receipt {
+    max-width: none;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+}
+
+/* ---- Customer ledger: links to the sale and return ---- */
+.ref-links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem 0.5rem;
+}
+@media (min-width: 48em) {
+  .ref-links {
+    justify-content: flex-start;
+  }
+}

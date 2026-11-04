@@ -155,7 +155,6 @@ export default function CustomerProfilePage() {
   }
 
   const bal = Number(c.balance);
-  const noPurchases = c.total_orders === 0;
 
   return (
     <>
@@ -198,35 +197,45 @@ export default function CustomerProfilePage() {
                 {c.is_active ? "Active" : "Inactive"}
               </span>
             </div>
-            {canWrite && (
-              <div className="row-actions">
-                <button
-                  type="button"
-                  className="btn btn--secondary btn--sm"
-                  onClick={() => setEditing(true)}
-                >
-                  Edit
-                </button>
-                {c.is_active ? (
-                  <button
-                    type="button"
-                    className="btn btn--danger-outline btn--sm"
-                    onClick={() => setDeactivating(true)}
-                  >
-                    Deactivate
-                  </button>
-                ) : (
+
+            <div className="row-actions">
+              <Link
+                className="btn btn--secondary btn--sm"
+                to={`/sales?customer=${c.id}`}
+              >
+                View sales
+              </Link>
+              {canWrite && (
+                <>
                   <button
                     type="button"
                     className="btn btn--secondary btn--sm"
-                    disabled={busy}
-                    onClick={reactivate}
+                    onClick={() => setEditing(true)}
                   >
-                    Reactivate
+                    Edit
                   </button>
-                )}
-              </div>
-            )}
+
+                  {c.is_active ? (
+                    <button
+                      type="button"
+                      className="btn btn--danger-outline btn--sm"
+                      onClick={() => setDeactivating(true)}
+                    >
+                      Deactivate
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="btn btn--secondary btn--sm"
+                      disabled={busy}
+                      onClick={reactivate}
+                    >
+                      Reactivate
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           <dl className="profile-details">
@@ -286,7 +295,7 @@ export default function CustomerProfilePage() {
             <div className="kpi__value">
               {formatMoney(c.total_spent, symbol)}
             </div>
-            <div className="kpi__trend">Across all completed sales</div>
+            <div className="kpi__trend">Completed sales, minus refunds</div>
           </div>
           <div className="card">
             <div className="kpi__top">
@@ -296,7 +305,7 @@ export default function CustomerProfilePage() {
               </span>
             </div>
             <div className="kpi__value">{c.total_orders}</div>
-            <div className="kpi__trend">Number of orders placed</div>
+            <div className="kpi__trend">Completed sales</div>
           </div>
           <div className="card">
             <div className="kpi__top">
@@ -311,13 +320,6 @@ export default function CustomerProfilePage() {
             <div className="kpi__trend">Most recent sale</div>
           </div>
         </div>
-
-        {noPurchases && (
-          <p className="info-note">
-            Purchase totals show zero for now. They fill in automatically once
-            sales are recorded for this customer.
-          </p>
-        )}
 
         <section className="card" aria-busy={ledger.loading}>
           <h2 className="card__title">Debt and credit history</h2>
@@ -363,6 +365,7 @@ export default function CustomerProfilePage() {
                     <tr>
                       <th>When</th>
                       <th>Type</th>
+                      <th>Reference</th>
                       <th className="num">Amount</th>
                       <th className="num">Balance after</th>
                       <th>Method</th>
@@ -387,6 +390,29 @@ export default function CustomerProfilePage() {
                               {type.label}
                             </span>
                           </td>
+
+                          <td data-label="Reference">
+                            {t.sale_id ? (
+                              <span className="ref-links">
+                                <Link to={`/sales/${t.sale_id}`}>
+                                  Sale {t.sale_label}
+                                </Link>
+                                {t.return_label && (
+                                  <Link to={`/sales/${t.sale_id}`}>
+                                    Return {t.return_label}
+                                  </Link>
+                                )}
+                                {t.sale_status === "voided" && (
+                                  <span className="badge badge--danger">
+                                    Voided
+                                  </span>
+                                )}
+                              </span>
+                            ) : (
+                              "—"
+                            )}
+                          </td>
+
                           <td className="num" data-label="Amount">
                             <span
                               className={

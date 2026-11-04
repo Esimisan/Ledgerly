@@ -23,6 +23,7 @@ import CustomerProfilePage from "./pages/customers/CustomerProfilePage";
 import DiscountsPage from "./pages/discounts/DiscountsPage";
 import SalesPage from "./pages/sales/SalesPage";
 import NewSalePage from "./pages/sales/NewSalePage";
+import SaleDetailPage from "./pages/sales/SaleDetailPage";
 
 // Dev-only: not included in production builds.
 const DesignKit = import.meta.env.DEV
@@ -68,11 +69,7 @@ export default function App() {
           <Route element={<RequirePermission permission="sales.create" />}>
             <Route path="sales/new" element={<NewSalePage />} />
           </Route>
-          <Route
-            path="sales/:saleId"
-            element={<Placeholder title="Sale" step={8} />}
-          />
-
+          <Route path="sales/:saleId" element={<SaleDetailPage />} />
           <Route element={<RequirePermission permission="discounts.manage" />}>
             <Route path="sales/discounts" element={<DiscountsPage />} />
           </Route>

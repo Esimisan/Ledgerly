@@ -1,5 +1,4 @@
-// First-visit tutorial text, kept as plain data (rule 11). The tutorial engine and
-// A step with a `permission` is shown only to roles that have it.
+// First-visit tutorial text, kept as plain data (rule 11). The tutorial engine and A step with a `permission` is shown only to roles that have it.
 export const TOURS = {
   customers: {
     title: "Customers",
@@ -29,11 +28,15 @@ export const TOURS = {
     steps: [
       {
         title: "Balance and purchases",
-        text: "The top cards show what this customer owes you (or the store credit they hold), how much they have spent and when they last bought.",
+        text: "The top cards show what this customer owes you (or the store credit they hold), how much they have spent after refunds, and when they last bought.",
       },
       {
         title: "Debt and credit history",
-        text: "Below the cards is every change to their balance, newest first, so you can see how it got to where it is.",
+        text: "Below the cards is every change to their balance, newest first. The Reference column links to the sale or return behind each change.",
+      },
+      {
+        title: "Their sales",
+        text: "Choose View sales to see every sale made to this customer in the Sales list.",
       },
       {
         title: "Edit or deactivate",
@@ -105,6 +108,29 @@ export const TOURS = {
       {
         title: "Take payment",
         text: "Use Pay in full, or split the amount across methods. For a saved customer, whatever is not paid now is added to their balance as credit. Walk-in sales must be paid in full.",
+      },
+    ],
+  },
+  "sale-detail": {
+    title: "A sale",
+    steps: [
+      {
+        title: "The receipt",
+        text: "The receipt is shown in the middle of the page. It is called an invoice while some of the money is still owed, and a receipt once everything is paid.",
+      },
+      {
+        title: "Print or save as PDF",
+        text: "Choose Print receipt. In the window that opens, pick a printer, or choose Save as PDF to keep a copy or send it to the customer.",
+      },
+      {
+        title: "Returns",
+        text: "When a customer brings goods back, choose Return items. Pick the quantities and say whether the goods are resellable or damaged. The refund is worked out for you.",
+        permission: "sales.return",
+      },
+      {
+        title: "Voiding a sale",
+        text: "Void sale cancels a sale made by mistake and puts the products back in stock. A reason is required. A sale that already has returns cannot be voided.",
+        permission: "sales.void",
       },
     ],
   },
