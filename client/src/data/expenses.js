@@ -211,3 +211,12 @@ export function expenseError(err) {
     return "That receipt file is too large. Choose one under 5 MB.";
   return msg || "Something went wrong. Please try again.";
 }
+
+// "2026-03-10" -> "Mar 10, 2026". Reads the date as local time (formatDate would
+// treat it as UTC midnight and can show the day before).
+export function formatExpenseDate(value) {
+  if (!value) return "—";
+  return new Date(`${value}T00:00:00`).toLocaleDateString("en", {
+    dateStyle: "medium",
+  });
+}

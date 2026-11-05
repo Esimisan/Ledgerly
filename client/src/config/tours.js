@@ -134,4 +134,46 @@ export const TOURS = {
       },
     ],
   },
+  expenses: {
+    title: "Expenses",
+    steps: [
+      {
+        title: "Your spending in one place",
+        text: "Every expense you record is listed here with its date, category and amount. The summary at the top adds up what you spent, in total and by category, for the dates you are looking at.",
+      },
+      {
+        title: "Record an expense",
+        text: "Choose Add expense, pick a category, then enter the amount and the date. You can also add who you paid, a note, and a photo or PDF of the receipt.",
+        permission: "expenses.manage",
+      },
+      {
+        title: "Find an expense",
+        text: "Search by description, vendor or category, narrow by dates, or pick one category to see only that kind of spending.",
+      },
+      {
+        title: "Void, don't delete",
+        text: "An expense entered by mistake can be voided, with a reason. It stays in the list as Voided, it is left out of every total, and it can no longer be edited.",
+        permission: "expenses.manage",
+      },
+    ],
+  },
+  "expense-categories": {
+    title: "Expense categories",
+    steps: [
+      {
+        title: "Sorting your spending",
+        text: "Categories group your expenses, like Rent or Electricity. A starter set was added for you, and you can rename any of them.",
+      },
+      {
+        title: "Add a category",
+        text: "Choose Add category for anything else you spend on, such as Packaging or Fuel. Two categories cannot have the same name.",
+        permission: "expenses.manage",
+      },
+      {
+        title: "Deactivate, don't delete",
+        text: "A category you no longer use can be deactivated. It disappears from the Add expense list, but old expenses keep it and still count in your totals. Reactivate it any time.",
+        permission: "expenses.manage",
+      },
+    ],
+  },
 };

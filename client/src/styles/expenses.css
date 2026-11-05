@@ -1,0 +1,163 @@
+/* ---- Expenses and expense categories ---- */
+
+/* Category name plus its "Default" badge in the list */
+.category-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  min-width: 0;
+  text-align: left;
+}
+.category-cell__name {
+  font-weight: 500;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.is-inactive .category-cell__name {
+  color: var(--text-muted);
+}
+
+/* Categories toolbar: filter on the left, button level with the select (not stretched) */
+.category-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+.category-toolbar__filter {
+  flex: 1 1 10rem;
+  max-width: 16rem;
+  min-width: 0;
+}
+
+/* ---- Expenses list toolbar: five filters ---- */
+.toolbar__filters--expenses {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 48em) {
+  .toolbar__filters--expenses {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ---- Expenses list ---- */
+.expense-cell {
+  min-width: 0;
+  text-align: left;
+}
+.expense-cell__name {
+  font-weight: 500;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+.expense-cell__sub {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+.is-inactive .expense-cell__name {
+  color: var(--text-muted);
+}
+.is-inactive .expense-amount {
+  text-decoration: line-through;
+}
+
+/* ---- Spending summary ---- */
+.expense-summary {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: var(--space-4);
+}
+.expense-summary__totals {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+}
+@media (min-width: 48em) {
+  .expense-summary {
+    grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
+  }
+  .expense-summary__totals {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.expense-stat__label {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.expense-summary.is-stale {
+  opacity: 0.6;
+}
+
+.expense-bars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+}
+.expense-bars__row {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.expense-bars__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.expense-bars__name {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.expense-bars__amount {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.expense-bars__sub {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* ---- Summary card header (title left, month picker right) ---- */
+.expense-summary__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.expense-summary__head > div {
+  min-width: 0;
+}
+
+/* ---- Add / edit expense modal ---- */
+/* Tall form: let the dialog scroll inside itself on short screens. */
+dialog.modal:has(.expense-form) {
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+}
+
+.receipt-picker {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: minmax(0, 1fr);
+  padding: var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+.receipt-picker__status {
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.receipt-picker__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

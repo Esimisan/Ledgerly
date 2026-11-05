@@ -87,3 +87,15 @@ export function categoryError(err) {
     return "Could not reach the server. Check your connection and try again.";
   return msg || "Something went wrong. Please try again.";
 }
+
+// Filter dropdown on the Expenses page: every category, including inactive ones.
+export async function listCategoryFilterOptions(businessId) {
+  const { data, error } = await supabase
+    .from("expense_categories")
+    .select("id, name, is_active")
+    .eq("business_id", businessId)
+    .order("name")
+    .order("id")
+    .limit(200);
+  return { rows: data ?? [], error: error?.message ?? "" };
+}

@@ -24,6 +24,8 @@ import DiscountsPage from "./pages/discounts/DiscountsPage";
 import SalesPage from "./pages/sales/SalesPage";
 import NewSalePage from "./pages/sales/NewSalePage";
 import SaleDetailPage from "./pages/sales/SaleDetailPage";
+import ExpensesPage from "./pages/expenses/ExpensesPage";
+import ExpenseCategoriesPage from "./pages/expenses/ExpenseCategoriesPage";
 
 // Dev-only: not included in production builds.
 const DesignKit = import.meta.env.DEV
@@ -79,9 +81,10 @@ export default function App() {
             element={<CustomerProfilePage />}
           />
           <Route element={<RequirePermission permission="finance.view" />}>
+            <Route path="expenses" element={<ExpensesPage />} />
             <Route
-              path="expenses"
-              element={<Placeholder title="Expenses" step={9} />}
+              path="expenses/categories"
+              element={<ExpenseCategoriesPage />}
             />
           </Route>
           <Route
