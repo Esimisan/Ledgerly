@@ -110,7 +110,7 @@ export default function Receipt({
       </dl>
 
       {sale.notes && <p className="receipt__note">{sale.notes}</p>}
-      <p className="receipt__thanks">Thank you for your business.</p>
+      <p className="receipt__thanks">Thank you for your patronage.</p>
     </article>
   );
 }
