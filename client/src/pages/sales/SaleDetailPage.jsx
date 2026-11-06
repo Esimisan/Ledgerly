@@ -155,6 +155,25 @@ export default function SaleDetailPage() {
   const voidBlockedByReturns =
     can("sales.void") && completed && sale.return_count > 0;
   const itemName = Object.fromEntries(items.map((i) => [i.id, i.product_name]));
+  // Credit part of the sale, minus debt cancelled by returns, minus what is still
+  // owed, is what the customer has paid since on their account.
+  const debtCancelledByReturns = returns.reduce(
+    (sum, r) => sum + Number(r.debt_offset),
+    0,
+  );
+  const paidSince = completed
+    ? Math.max(
+        Number(sale.balance_due) -
+          debtCancelledByReturns -
+          Number(sale.amount_outstanding),
+        0,
+      )
+    : 0;
+  const canRecordPayment =
+    can("customers.write") &&
+    completed &&
+    Boolean(sale.customer_id) &&
+    Number(sale.amount_outstanding) > 0;
 
   function afterVoid(result) {
     const parts = [`Sale ${result.sale_label} was voided.`];
@@ -235,6 +254,14 @@ export default function SaleDetailPage() {
               >
                 <Printer size={16} aria-hidden="true" /> Print receipt
               </button>
+              {canRecordPayment && (
+                <Link
+                  className="btn btn--primary btn--sm"
+                  to={`/customers/${sale.customer_id}?pay=1`}
+                >
+                  Record payment
+                </Link>
+              )}
               {canReturn && (
                 <button
                   type="button"
@@ -341,7 +368,11 @@ export default function SaleDetailPage() {
               {formatMoney(sale.amount_outstanding, symbol)}
             </div>
             <div className="kpi__trend">
-              {completed ? "After any returns" : "A voided sale owes nothing"}
+              {!completed
+                ? "A voided sale owes nothing"
+                : paidSince > 0
+                  ? `After returns, and ${formatMoney(paidSince, symbol)} paid since`
+                  : "After any returns"}
             </div>
           </div>
           <div className="card">

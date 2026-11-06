@@ -6,6 +6,8 @@ import Pagination from "../../components/ui/Pagination";
 import BalanceText from "../../components/customers/BalanceText";
 import CustomerModal from "../../components/customers/CustomerModal";
 import DeactivateCustomerModal from "../../components/customers/DeactivateCustomerModal";
+import RecordPaymentModal from "../../components/customers/RecordPaymentModal";
+import AdjustBalanceModal from "../../components/customers/AdjustBalanceModal";
 import { useAuth } from "../../context/AuthContext";
 import {
   customerError,
@@ -35,6 +37,7 @@ export default function CustomerProfilePage() {
   const symbol = business.currency_symbol ?? "₦";
   const canWrite = can("customers.write");
   const canSetDiscount = can("discounts.manage");
+  const canAdjust = can("customers.adjust");
   const validId = UUID.test(customerId ?? "");
 
   const [params, setParams] = useSearchParams();
@@ -42,6 +45,8 @@ export default function CustomerProfilePage() {
 
   const [editing, setEditing] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
+  const [paying, setPaying] = useState(() => params.get("pay") === "1");
+  const [adjusting, setAdjusting] = useState(false);
   const [notice, setNotice] = useState("");
   const [actionError, setActionError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -71,7 +76,7 @@ export default function CustomerProfilePage() {
     return () => {
       cancelled = true;
     };
-  }, [businessId, customerId, validId, reload]);
+  }, [businessId, customerId, validId, page, reload]);
 
   // The ledger (read-only here; recording payments arrives in Step 10).
   const [ledger, setLedger] = useState({
@@ -99,6 +104,60 @@ export default function CustomerProfilePage() {
     setDeactivating(false);
     setNotice(message);
     setReload((n) => n + 1);
+  }
+
+  const balanceWords = (v) =>
+    v > 0
+      ? `owes ${formatMoney(v, symbol)}`
+      : v < 0
+        ? `has ${formatMoney(-v, symbol)} in store credit`
+        : "owes nothing";
+
+  // Close the money modals, go back to the newest history rows, show a message.
+  function afterMoney(message) {
+    setPaying(false);
+    setAdjusting(false);
+    setNotice(message);
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("page");
+        next.delete("pay");
+        return next;
+      },
+      { replace: true },
+    );
+    setReload((n) => n + 1);
+  }
+
+  function afterPayment(result) {
+    const parts = [
+      `Payment of ${formatMoney(result.amount, symbol)} recorded.`,
+    ];
+    if (Number(result.credit_added) > 0)
+      parts.push(
+        `${formatMoney(result.credit_added, symbol)} of it is kept as store credit.`,
+      );
+    parts.push(`${c.name} now ${balanceWords(Number(result.balance_after))}.`);
+    afterMoney(parts.join(" "));
+  }
+
+  function afterAdjustment(result) {
+    afterMoney(
+      `Balance adjusted. ${c.name} now ${balanceWords(Number(result.balance_after))}.`,
+    );
+  }
+
+  function closePay() {
+    setPaying(false);
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("pay");
+        return next;
+      },
+      { replace: true },
+    );
   }
 
   async function reactivate() {
@@ -205,6 +264,24 @@ export default function CustomerProfilePage() {
               >
                 View sales
               </Link>
+              {canWrite && (
+                <button
+                  type="button"
+                  className="btn btn--primary btn--sm"
+                  onClick={() => setPaying(true)}
+                >
+                  Record payment
+                </button>
+              )}
+              {canAdjust && (
+                <button
+                  type="button"
+                  className="btn btn--secondary btn--sm"
+                  onClick={() => setAdjusting(true)}
+                >
+                  Adjust balance
+                </button>
+              )}
               {canWrite && (
                 <>
                   <button
@@ -430,7 +507,14 @@ export default function CustomerProfilePage() {
                             />
                           </td>
                           <td data-label="Method">
-                            {methodLabel(t.payment_method)}
+                            <span className="amount-stack">
+                              <span>{methodLabel(t.payment_method)}</span>
+                              {t.reference && (
+                                <span className="product-cell__sub">
+                                  Ref {t.reference}
+                                </span>
+                              )}
+                            </span>
                           </td>
                           <td className="cell-wrap" data-label="Note">
                             {t.note || "—"}
@@ -457,6 +541,26 @@ export default function CustomerProfilePage() {
         </section>
       </div>
 
+      {canWrite && paying && (
+        <RecordPaymentModal
+          open
+          onClose={closePay}
+          businessId={businessId}
+          customer={c}
+          symbol={symbol}
+          onDone={afterPayment}
+        />
+      )}
+      {canAdjust && adjusting && (
+        <AdjustBalanceModal
+          open
+          onClose={() => setAdjusting(false)}
+          businessId={businessId}
+          customer={c}
+          symbol={symbol}
+          onDone={afterAdjustment}
+        />
+      )}
       {canWrite && editing && (
         <CustomerModal
           open

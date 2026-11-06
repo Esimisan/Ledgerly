@@ -63,6 +63,13 @@ export default function VoidSaleModal({
             money.
           </p>
         )}
+
+        {sale.customer_id && (
+          <p className="info-note">
+            If {sale.customer_name || "the customer"} has paid money on account
+            since this sale, that money stays on their account as store credit.
+          </p>
+        )}
         {onCredit > 0 && (
           <p className="info-note">
             The {formatMoney(onCredit, symbol)} that was put on credit will be

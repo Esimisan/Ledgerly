@@ -200,3 +200,66 @@ export async function searchCustomers({ businessId, q = "", limit = 8 }) {
   const { data, error } = await query.order("name").order("id").limit(limit);
   return { rows: data ?? [], error: error?.message ?? "" };
 }
+
+// Completed sales that still owe money, OLDEST first (the order payments clear them).
+export async function listOutstandingSales({
+  businessId,
+  customerId,
+  limit = 200,
+}) {
+  const { data, error } = await supabase
+    .from("sales_with_details")
+    .select("id, sale_label, sold_at, amount_outstanding")
+    .eq("business_id", businessId)
+    .eq("customer_id", customerId)
+    .eq("status", "completed")
+    .gt("amount_outstanding", 0)
+    .order("sold_at", { ascending: true })
+    .order("id")
+    .limit(limit);
+  return { rows: data ?? [], error: error?.message ?? "" };
+}
+
+export function recordCustomerPayment({
+  businessId,
+  customerId,
+  amount,
+  method,
+  reference,
+  note,
+}) {
+  return supabase.rpc("record_customer_payment", {
+    p_business_id: businessId,
+    p_customer_id: customerId,
+    p_amount: Number(amount),
+    p_method: method,
+    p_reference: (reference ?? "").trim() || null,
+    p_note: (note ?? "").trim() || null,
+  });
+}
+
+// amount is signed: positive adds to what they owe, negative reduces it.
+export function recordCustomerAdjustment({
+  businessId,
+  customerId,
+  amount,
+  reason,
+}) {
+  return supabase.rpc("record_customer_adjustment", {
+    p_business_id: businessId,
+    p_customer_id: customerId,
+    p_amount: Number(amount),
+    p_reason: (reason ?? "").trim(),
+  });
+}
+
+// The functions raise readable messages, so those pass through.
+export function moneyError(err) {
+  const msg = err?.message || "";
+  if (/failed to fetch|networkerror|load failed/i.test(msg))
+    return "Could not reach the server. Check your connection and try again.";
+  if (err?.code === "22003") return "That amount is too large.";
+  if (err?.code === "42501" && /permission denied/i.test(msg))
+    return "You do not have permission to do this.";
+  return msg || "Something went wrong. Please try again.";
+}

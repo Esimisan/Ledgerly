@@ -28,15 +28,16 @@ export const TOURS = {
     steps: [
       {
         title: "Balance and purchases",
-        text: "The top cards show what this customer owes you (or the store credit they hold), how much they have spent after refunds, and when they last bought.",
+        text: "The top cards show what this customer owes you (or the store credit they hold), how much they have spent after refunds, and when they last bought. Choose View sales to see every sale made to them.",
       },
       {
         title: "Debt and credit history",
-        text: "Below the cards is every change to their balance, newest first. The Reference column links to the sale or return behind each change.",
+        text: "Below the cards is every change to their balance, newest first, including payments with their method and reference. The Reference column links to the sale or return behind each change.",
       },
       {
-        title: "Their sales",
-        text: "Choose View sales to see every sale made to this customer in the Sales list.",
+        title: "Record a payment",
+        text: "When a customer pays what they owe, choose Record payment. The app shows which sales it settles, oldest first, and anything extra is kept as store credit. Managers can also use Adjust balance for corrections, with a reason.",
+        permission: "customers.write",
       },
       {
         title: "Edit or deactivate",
@@ -116,7 +117,7 @@ export const TOURS = {
     steps: [
       {
         title: "The receipt",
-        text: "The receipt is shown in the middle of the page. It is called an invoice while some of the money is still owed, and a receipt once everything is paid.",
+        text: "The receipt is shown in the middle of the page. It is called an invoice while some of the money is still owed, and a receipt once everything is paid. When the customer pays later, use Record payment.",
       },
       {
         title: "Print or save as PDF",
@@ -173,6 +174,61 @@ export const TOURS = {
         title: "Deactivate, don't delete",
         text: "A category you no longer use can be deactivated. It disappears from the Add expense list, but old expenses keep it and still count in your totals. Reactivate it any time.",
         permission: "expenses.manage",
+      },
+    ],
+  },
+  "purchase-orders": {
+    title: "Purchase orders",
+    steps: [
+      {
+        title: "Your orders to suppliers",
+        text: "Every order you place with a supplier is listed here with its status: Draft, Ordered, Partly received, Received or Cancelled. Click an order number to open it.",
+      },
+      {
+        title: "Create an order",
+        text: "Choose New purchase order, pick the supplier and the products you want, and set the cost you expect to pay. You can save it as a draft or place it straight away.",
+      },
+      {
+        title: "Find an order",
+        text: "Search by order number or supplier, narrow by status, supplier or dates, and sort by the date a delivery is expected. Late deliveries are marked Overdue.",
+      },
+    ],
+  },
+  "new-purchase-order": {
+    title: "A purchase order",
+    steps: [
+      {
+        title: "Supplier and products",
+        text: "Choose the supplier, then search for products and click one to add it. Each product starts at its current cost price, and you can change the cost and quantity for this order.",
+      },
+      {
+        title: "Delivery and shipping",
+        text: "Add the date you expect the goods and any shipping cost. Shipping is added to the order total on its own and is not spread into product costs.",
+      },
+      {
+        title: "Draft or place",
+        text: "Save as draft to keep working on it later. Save and place order when it has been sent to the supplier. A placed order is locked, and you can receive stock against it.",
+      },
+    ],
+  },
+  "purchase-order-detail": {
+    title: "A purchase order",
+    steps: [
+      {
+        title: "Where the order stands",
+        text: "The status shows whether the order is a draft, placed, partly received or finished, and the cards show how much has arrived. Every delivery is listed at the bottom.",
+      },
+      {
+        title: "Receive stock",
+        text: "When goods arrive, choose Receive stock and enter what came, all of it or just part. Your inventory goes up straight away, and you can enter the cost the supplier actually charged.",
+      },
+      {
+        title: "Cancel, don't delete",
+        text: "An order you no longer need can be cancelled, with a reason. It stays on record. Stock that already arrived stays in your inventory.",
+      },
+      {
+        title: "Print",
+        text: "Choose Print to get a clean copy of the order to send to the supplier, or save it as a PDF from the print window.",
       },
     ],
   },

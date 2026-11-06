@@ -26,6 +26,9 @@ import NewSalePage from "./pages/sales/NewSalePage";
 import SaleDetailPage from "./pages/sales/SaleDetailPage";
 import ExpensesPage from "./pages/expenses/ExpensesPage";
 import ExpenseCategoriesPage from "./pages/expenses/ExpenseCategoriesPage";
+import PurchaseOrdersPage from "./pages/purchases/PurchaseOrdersPage";
+import PurchaseOrderFormPage from "./pages/purchases/PurchaseOrderFormPage";
+import PurchaseOrderDetailPage from "./pages/purchases/PurchaseOrderDetailPage";
 
 // Dev-only: not included in production builds.
 const DesignKit = import.meta.env.DEV
@@ -64,7 +67,19 @@ export default function App() {
           <Route element={<RequirePermission permission="purchases.manage" />}>
             <Route
               path="inventory/purchase-orders"
-              element={<Placeholder title="Purchase orders" step={10} />}
+              element={<PurchaseOrdersPage />}
+            />
+            <Route
+              path="inventory/purchase-orders/new"
+              element={<PurchaseOrderFormPage />}
+            />
+            <Route
+              path="inventory/purchase-orders/:poId"
+              element={<PurchaseOrderDetailPage />}
+            />
+            <Route
+              path="inventory/purchase-orders/:poId/edit"
+              element={<PurchaseOrderFormPage />}
             />
           </Route>
           <Route path="sales" element={<SalesPage />} />

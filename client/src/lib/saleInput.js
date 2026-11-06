@@ -54,3 +54,17 @@ export function checkManual(on, manual) {
     return { active: true, valid: false, error: "That number is too large." };
   return { active: true, valid: true, error: "", value: n };
 }
+
+// Cost or shipping style money: zero is allowed, at most 2 decimal places.
+export function parseCost(value) {
+  const text = String(value ?? "").trim();
+  if (text === "") return null;
+  const n = Number(text);
+  if (!Number.isFinite(n) || n < 0 || n >= 1_000_000_000) return null;
+  return decimalsOk(n, 2) ? n : null;
+}
+
+// Whole kobo for quantity x unit cost, matching the database's round(qty * cost, 2).
+export function lineCents(qty, unitCost) {
+  return Math.round((Math.round(qty * 1000) * toCents(unitCost)) / 1000);
+}

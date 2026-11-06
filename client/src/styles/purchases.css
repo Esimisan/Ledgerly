@@ -1,0 +1,42 @@
+/* List toolbar: five filters, two columns on phones and three from tablet width. */
+.toolbar__filters--po {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (min-width: 48em) {
+  .toolbar__filters--po {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.po-cell {
+  min-width: 0;
+  text-align: left;
+}
+
+/* Unit cost box in the line editor and the receive form */
+.cost-input {
+  width: 7.5rem;
+  min-height: 2.25rem;
+  padding: 0.35rem 0.6rem;
+  text-align: right;
+}
+.cost-cell {
+  display: grid;
+  justify-items: end;
+  gap: 0.25rem;
+}
+
+/* The printable order sheet is hidden on screen and shown only when printing. */
+.po-print {
+  display: none;
+}
+@media print {
+  .po-print {
+    display: block;
+  }
+}
+
+/* Receive-stock modal is wider, like the return modal */
+dialog.modal:has(.receive-form) {
+  width: min(44rem, calc(100% - 2rem));
+}
