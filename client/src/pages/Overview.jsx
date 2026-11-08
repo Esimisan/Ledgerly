@@ -1,22 +1,28 @@
-import { Receipt, TrendingUp, Users, Wallet } from "lucide-react";
+import { useState } from "react";
 import PageHeader from "../components/layout/PageHeader";
+import AttentionCard from "../components/analytics/AttentionCard";
+import CustomerStrip from "../components/analytics/CustomerStrip";
+import KpiGrid from "../components/analytics/KpiGrid";
+import { SalesOverviewCard } from "../components/analytics/SalesChart";
+import TopProductsCard from "../components/analytics/TopProductsCard";
 import { useAuth } from "../context/AuthContext";
-import { capitalize, displayName } from "../lib/user";
+import { usePeriod } from "../context/PeriodContext";
+import { refreshedText } from "../lib/analytics";
+import { displayName } from "../lib/user";
+import "../styles/analytics.css";
 
 function greeting() {
   const h = new Date().getHours();
   return h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
 }
 
-const KPIS = [
-  { label: "Revenue", icon: Wallet },
-  { label: "Operating expenses", icon: Receipt },
-  { label: "Net profit", icon: TrendingUp },
-  { label: "Orders", icon: Users },
-];
-
 export default function Overview() {
-  const { user, business, role, isOwner, permissions } = useAuth();
+  const { user, business } = useAuth();
+  const { from, to } = usePeriod();
+  const [meta, setMeta] = useState(null);
+
+  const businessId = business.id;
+  const symbol = business.currency_symbol ?? "₦";
   const first = displayName(user).split(" ")[0];
 
   return (
@@ -27,55 +33,50 @@ export default function Overview() {
         subtitle="Here is what is happening with your business"
       />
 
-      <div className="grid-kpi">
-        {KPIS.map(({ label, icon: Icon }) => (
-          <section key={label} className="card">
-            <div className="kpi__top">
-              <span>{label}</span>
-              <span className="kpi__icon">
-                <Icon size={16} aria-hidden="true" />
-              </span>
-            </div>
-            <p className="kpi__value">{business?.currency_symbol ?? "₦"}0</p>
-            <p className="kpi__trend">Live numbers arrive in Step 11</p>
-          </section>
-        ))}
+      <KpiGrid
+        businessId={businessId}
+        symbol={symbol}
+        from={from}
+        to={to}
+        variant="overview"
+        onLoaded={setMeta}
+      />
+
+      <SalesOverviewCard
+        businessId={businessId}
+        from={from}
+        to={to}
+        symbol={symbol}
+      />
+
+      <div className="an-split">
+        <AttentionCard
+          businessId={businessId}
+          from={from}
+          to={to}
+          symbol={symbol}
+        />
+        <TopProductsCard
+          businessId={businessId}
+          from={from}
+          to={to}
+          symbol={symbol}
+        />
       </div>
 
-      <section className="card">
-        <h2 className="card__title">Foundation check</h2>
-        <p className="card__sub">
-          Temporary: confirms sign-in, tenancy and permissions are wired up.
-        </p>
-        <div className="table-wrap" style={{ marginTop: "var(--space-4)" }}>
-          <table className="table">
-            <tbody>
-              <tr>
-                <th scope="row">Signed in as</th>
-                <td>{user.email}</td>
-              </tr>
-              <tr>
-                <th scope="row">Business</th>
-                <td>{business?.name}</td>
-              </tr>
-              <tr>
-                <th scope="row">Your role</th>
-                <td>
-                  <span className="badge">{capitalize(role)}</span>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">Permissions</th>
-                <td>
-                  {isOwner
-                    ? "Everything (owner)"
-                    : permissions.join(", ") || "None"}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+      <CustomerStrip
+        businessId={businessId}
+        from={from}
+        to={to}
+        symbol={symbol}
+      />
+
+      <p className="an-foot">
+        Ledgerly overview ·{" "}
+        {meta
+          ? `Data refreshed ${refreshedText(meta.refreshed_at)}`
+          : "Loading the latest data…"}
+      </p>
     </>
   );
 }

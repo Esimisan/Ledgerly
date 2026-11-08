@@ -103,6 +103,10 @@ begin
   perform public.zz_t('ST9 staff stock watch ok', $q$select * from public.analytics_stock_watch(public.zz_g('biz'), 'low')$q$, 'ok');
   perform public.zz_t('ST10 staff customer snapshot ok', $q$select public.analytics_customer_snapshot(public.zz_g('biz'), '2025-03-01', '2025-04-01')$q$, 'ok');
   perform public.zz_t('ST11 staff customer rankings ok', $q$select * from public.analytics_customer_rankings(public.zz_g('biz'), '2025-03-01', '2025-04-01')$q$, 'ok');
+  perform public.zz_t('ST12 staff trend: revenue visible, profit and expense columns null',
+    $q$select sum(revenue) = 200 and sum(orders) = 1
+              and count(*) filter (where gross_profit is not null or operating_expenses is not null or net_profit is not null) = 0
+       from public.analytics_trend_series(public.zz_g('biz'), '2025-03-01', '2025-04-01', 'day')$q$, 'count=true');
 
   -- ===== MANAGER =====
   reset role;
@@ -112,6 +116,9 @@ begin
 
   perform public.zz_t('MG1 manager sees cost, profit, expenses', $q$select public.zz_k('cogs','current') = 80 and public.zz_k('gross_profit','current') = 120 and public.zz_k('operating_expenses','current') = 20 and public.zz_k('net_profit','current') = 100$q$, 'count=true');
   perform public.zz_t('MG2 manager can rank by profit', $q$select * from public.analytics_product_performance(public.zz_g('biz'), '2025-03-01', '2025-04-01', 'most_profitable')$q$, 'ok');
+  perform public.zz_t('MG5 manager trend shows gross profit 120, expenses 20, net profit 100',
+    $q$select sum(gross_profit) = 120 and sum(operating_expenses) = 20 and sum(net_profit) = 100
+       from public.analytics_trend_series(public.zz_g('biz'), '2025-03-01', '2025-04-01', 'day')$q$, 'count=true');
 
   -- Remove finance.view from the manager role: the same call now hides finance fields.
   reset role;
@@ -121,6 +128,10 @@ begin
   set local role authenticated;
   perform public.zz_t('MG3 without finance.view the manager sees no cost', $q$select public.zz_k('cogs','current') is null and public.zz_k('net_profit','current') is null$q$, 'count=true');
   perform public.zz_t('MG4 without finance.view profit ranking is refused', $q$select * from public.analytics_product_performance(public.zz_g('biz'), '2025-03-01', '2025-04-01', 'most_profitable')$q$, '42501');
+  perform public.zz_t('MG6 without finance.view the manager trend hides profit and expenses',
+    $q$select sum(revenue) = 200
+              and count(*) filter (where gross_profit is not null or operating_expenses is not null or net_profit is not null) = 0
+       from public.analytics_trend_series(public.zz_g('biz'), '2025-03-01', '2025-04-01', 'day')$q$, 'count=true');
 
   -- ===== SUSPENDED MEMBER =====
   reset role;

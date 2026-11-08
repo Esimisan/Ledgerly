@@ -14,6 +14,7 @@ import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
 import Onboarding from "./pages/auth/Onboarding";
 import Overview from "./pages/Overview";
+import AnalyticsPage from "./pages/analytics/AnalyticsPage";
 import Placeholder from "./pages/Placeholder";
 import { NotFound } from "./pages/Status";
 import SuppliersPage from "./pages/suppliers/SuppliersPage";
@@ -102,10 +103,7 @@ export default function App() {
               element={<ExpenseCategoriesPage />}
             />
           </Route>
-          <Route
-            path="analytics"
-            element={<Placeholder title="Analytics" step={11} />}
-          />
+          <Route path="analytics" element={<AnalyticsPage />} />
           <Route element={<RequirePermission permission="reports.view" />}>
             <Route
               path="analytics/reports"

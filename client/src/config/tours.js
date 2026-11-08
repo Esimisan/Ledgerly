@@ -232,4 +232,26 @@ export const TOURS = {
       },
     ],
   },
+  analytics: {
+    title: "Analytics",
+    steps: [
+      {
+        title: "Today and this month",
+        text: "The top of the page shows today's numbers, then the month you picked. Today always means today, whatever month is selected.",
+      },
+      {
+        title: "Performance over time",
+        text: "The chart shows how the month moved. Use Daily, Weekly or Monthly to zoom in or out, and read the Insights beside it for what changed.",
+      },
+      {
+        title: "Profit and spending",
+        text: "Switch the chart between Revenue, Gross profit, Operating expenses and Net profit. In Product analytics you can also rank products by how much profit they make.",
+        permission: "finance.view",
+      },
+      {
+        title: "Products and customers",
+        text: "Pick an Analysis from the dropdown to see best and worst sellers, falling sales, stock that is low or not selling, and the customers who spend most or have gone quiet.",
+      },
+    ],
+  },
 };
