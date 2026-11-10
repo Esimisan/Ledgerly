@@ -1,8 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import Field from "../../components/ui/Field";
 import Pagination from "../../components/ui/Pagination";
+import SortHeader from "../../components/reports/SortHeader";
+import ExportButton from "../../components/reports/ExportButton";
 import { MovementTypeBadge } from "../../components/inventory/Badges";
 import { useAuth } from "../../context/AuthContext";
 import { useDebounced } from "../../hooks/useDebounced";
@@ -10,14 +12,30 @@ import {
   getProductName,
   isDateParam,
   listMovements,
+  MOVEMENT_SORTS,
   MOVEMENT_TYPES,
 } from "../../data/stock";
 import { formatDateTime, formatMoney, formatQty } from "../../lib/format";
+import { csvDateTime, csvMoney, csvNumber } from "../../lib/csv";
+import { todayInLagos } from "../../lib/analytics";
+
+// Which sort keys each sortable column heading sets (same keys as the "Sort by" menu).
+const WHEN_KEYS = [
+  { key: "newest", dir: "desc" },
+  { key: "oldest", dir: "asc" },
+];
+const PRODUCT_KEYS = [{ key: "product", dir: "asc" }];
+const CHANGE_KEYS = [
+  { key: "increase", dir: "desc" },
+  { key: "decrease", dir: "asc" },
+];
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function MovementsTab() {
   const { business } = useAuth();
+  const canExport = can("reports.view");
+  const canSeeCost = can("finance.view");
   const businessId = business.id;
   const symbol = business.currency_symbol ?? "₦";
 
@@ -28,6 +46,8 @@ export default function MovementsTab() {
   const type = MOVEMENT_TYPES[params.get("type")] ? params.get("type") : "";
   const from = isDateParam(params.get("from")) ? params.get("from") : "";
   const to = isDateParam(params.get("to")) ? params.get("to") : "";
+  const rawSort = params.get("sort");
+  const sort = MOVEMENT_SORTS[rawSort] ? rawSort : "newest";
   const page = Math.max(1, parseInt(params.get("page") ?? "1", 10) || 1);
 
   function update(changes) {
@@ -69,15 +89,61 @@ export default function MovementsTab() {
   useEffect(() => {
     let cancelled = false;
     setState((s) => ({ ...s, loading: true, error: "" }));
-    listMovements({ businessId, productId, q, type, from, to, page }).then(
-      (result) => {
-        if (!cancelled) setState({ loading: false, ...result });
-      },
-    );
+    listMovements({
+      businessId,
+      productId,
+      q,
+      type,
+      from,
+      to,
+      sort,
+      page,
+    }).then((result) => {
+      if (!cancelled) setState({ loading: false, ...result });
+    });
     return () => {
       cancelled = true;
     };
-  }, [businessId, productId, q, type, from, to, page]);
+  }, [businessId, productId, q, type, from, to, sort, page]);
+
+  const changeSort = (key) =>
+    update({ sort: !key || key === "newest" ? "" : key });
+
+  // The unit cost is only exported for people who can see finance.
+  const exportColumns = useMemo(() => {
+    const base = [
+      { header: "Date and time", value: (m) => csvDateTime(m.created_at) },
+      { header: "Product", value: (m) => m.product_name },
+      { header: "SKU", value: (m) => m.product_sku },
+      {
+        header: "Type",
+        value: (m) => MOVEMENT_TYPES[m.movement_type]?.label ?? m.movement_type,
+      },
+      { header: "Quantity change", value: (m) => csvNumber(m.quantity_change) },
+      { header: "Unit", value: (m) => m.product_unit },
+      { header: "Balance after", value: (m) => csvNumber(m.balance_after) },
+    ];
+    const cost = [
+      { header: `Unit cost (${symbol})`, value: (m) => csvMoney(m.unit_cost) },
+    ];
+    const tail = [
+      { header: "Note", value: (m) => m.note },
+      { header: "Recorded by", value: (m) => m.created_by_name },
+    ];
+    return [...base, ...(canSeeCost ? cost : []), ...tail];
+  }, [symbol, canSeeCost]);
+  const fetchExportPage = (pg, pageSize) =>
+    listMovements({
+      businessId,
+      productId,
+      q,
+      type,
+      from,
+      to,
+      sort,
+      page: pg,
+      pageSize,
+    });
 
   const filtered = Boolean(q || productId || type || from || to);
 
@@ -101,6 +167,16 @@ export default function MovementsTab() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+          {canExport && (
+            <div className="toolbar__actions">
+              <ExportButton
+                filename={`ledgerly-stock-movements-${todayInLagos()}.csv`}
+                columns={exportColumns}
+                fetchPage={fetchExportPage}
+                disabled={state.total === 0}
+              />
+            </div>
+          )}
           {productId && (
             <div className="filter-chip">
               <span>
@@ -117,7 +193,19 @@ export default function MovementsTab() {
           )}
         </div>
 
-        <div className="toolbar__filters toolbar__filters--3">
+        <div className="toolbar__filters rp-filters-4">
+          <Field
+            as="select"
+            label="Sort by"
+            value={sort}
+            onChange={(e) => changeSort(e.target.value)}
+          >
+            {Object.entries(MOVEMENT_SORTS).map(([key, s]) => (
+              <option key={key} value={key}>
+                {s.label}
+              </option>
+            ))}
+          </Field>
           <Field
             as="select"
             label="Type"
@@ -202,11 +290,27 @@ export default function MovementsTab() {
               <table className="table table--stack">
                 <thead>
                   <tr>
-                    <th>Product</th>
+                    <SortHeader
+                      label="Product"
+                      keys={PRODUCT_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
                     <th>Type</th>
-                    <th className="num">Change</th>
+                    <SortHeader
+                      label="Change"
+                      className="num"
+                      keys={CHANGE_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
                     <th className="num">Balance after</th>
-                    <th>When</th>
+                    <SortHeader
+                      label="When"
+                      keys={WHEN_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
                     <th>Note</th>
                     <th>By</th>
                   </tr>

@@ -14,7 +14,7 @@ export const TOURS = {
       },
       {
         title: "Find people quickly",
-        text: "Search by name, phone or email, or filter by status and balance to see who owes money or has store credit.",
+        text: "Search by name, phone or email, filter by status or balance, and click a column heading to sort. People who can view reports also get an Export CSV button that downloads exactly the list you are looking at.",
       },
       {
         title: "Deactivate, don't delete",
@@ -82,7 +82,7 @@ export const TOURS = {
       },
       {
         title: "Find a sale",
-        text: "Search by sale number or customer, narrow by date, or switch on Money still owed to see sales that have not been fully paid.",
+        text: "Search by sale number or customer, narrow by date, switch on Money still owed, and click Sale, Total or Payment to sort. People who can view reports also get Export CSV for the sales shown.",
       },
       {
         title: "Voided and returned sales",
@@ -149,7 +149,7 @@ export const TOURS = {
       },
       {
         title: "Find an expense",
-        text: "Search by description, vendor or category, narrow by dates, or pick one category to see only that kind of spending.",
+        text: "Search by description, vendor or category, narrow by dates, pick one category, and click Date or Amount to sort. People who can view reports also get Export CSV for the expenses shown.",
       },
       {
         title: "Void, don't delete",
@@ -251,6 +251,62 @@ export const TOURS = {
       {
         title: "Products and customers",
         text: "Pick an Analysis from the dropdown to see best and worst sellers, falling sales, stock that is low or not selling, and the customers who spend most or have gone quiet.",
+      },
+    ],
+  },
+  reports: {
+    title: "Reports",
+    steps: [
+      {
+        title: "Pick a report",
+        text: "Use the Report menu to choose sales by day, week or month, sales by product or customer, stock movements, customer balances, or a month-by-month or year-by-year summary.",
+      },
+      {
+        title: "Choose your dates",
+        text: "Pick a ready-made range like This month or Last 30 days, or choose Custom dates. Both the first and the last day are included, and a range can be up to three years. Customer balances and the monthly and yearly summary do not use these dates.",
+      },
+      {
+        title: "Profit and spending",
+        text: "Profit and loss and Expenses by category appear in the menu for people with finance access. They also unlock cost and profit columns in the sales reports.",
+        permission: "finance.view",
+      },
+      {
+        title: "Export or print",
+        text: "Export CSV downloads the report you are looking at, ready for Excel. Print / Save as PDF prints it on white paper with its dates at the top. For wide reports, choose Landscape in the print window.",
+      },
+    ],
+  },
+  "import-products": {
+    title: "Import products",
+    steps: [
+      {
+        title: "Start from the template",
+        text: "Download the template, or download your current products, and fill it in with Excel. Only the name column is required. Save the file as CSV UTF-8 and choose it here.",
+      },
+      {
+        title: "Check before anything is saved",
+        text: "After you choose a file, you see what will happen to every row: a new product, an update, no change, or an error with the reason. Nothing is saved until you press Import.",
+      },
+      {
+        title: "How rows are matched",
+        text: "A row whose sku already exists updates that product, and blank cells leave the old values alone. A new sku creates a product. Categories and suppliers are matched by name and created when missing.",
+      },
+      {
+        title: "Opening stock and safe repeats",
+        text: "The opening_stock column only counts for new products and is recorded as a stock movement. To change the stock of an existing product, use a stock adjustment. Importing the same file twice changes nothing the second time.",
+      },
+    ],
+  },
+  "stock-movements": {
+    title: "Stock movements",
+    steps: [
+      {
+        title: "Every change to your stock",
+        text: "Each time stock comes in, is sold, returned, damaged, removed or counted again, it is listed here with the balance afterwards.",
+      },
+      {
+        title: "Find and sort",
+        text: "Search by product, filter by type or dates, and click Product, Change or When to sort. People who can view reports also get Export CSV for the movements shown.",
       },
     ],
   },

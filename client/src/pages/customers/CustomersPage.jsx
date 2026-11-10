@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Plus, Search } from "lucide-react";
 import PageHeader from "../../components/layout/PageHeader";
 import Field from "../../components/ui/Field";
 import Pagination from "../../components/ui/Pagination";
+import SortHeader from "../../components/reports/SortHeader";
+import ExportButton from "../../components/reports/ExportButton";
 import CustomerModal from "../../components/customers/CustomerModal";
 import DeactivateCustomerModal from "../../components/customers/DeactivateCustomerModal";
 import { useAuth } from "../../context/AuthContext";
@@ -17,6 +19,12 @@ import {
 import { formatDate, formatMoney } from "../../lib/format";
 
 const STATUSES = ["active", "inactive", "all"];
+
+// Which sort keys each sortable column heading sets (same keys as the "Sort by" menu).
+const NAME_KEYS = [{ key: "name", dir: "asc" }];
+const BALANCE_KEYS = [{ key: "balance_desc", dir: "desc" }];
+const SPENT_KEYS = [{ key: "spent_desc", dir: "desc" }];
+const LAST_KEYS = [{ key: "last_purchase", dir: "desc" }];
 const BALANCES = ["owes", "credit"];
 
 export default function CustomersPage() {
@@ -25,6 +33,7 @@ export default function CustomersPage() {
   const symbol = business.currency_symbol ?? "₦";
   const canWrite = can("customers.write");
   const canSetDiscount = can("discounts.manage");
+  const canExport = can("reports.view");
 
   // List state lives in the URL, so back/forward and bookmarks work.
   const [params, setParams] = useSearchParams();
@@ -87,6 +96,37 @@ export default function CustomersPage() {
     setSearch("");
     setParams({}, { replace: true });
   }
+
+  const changeSort = (key) =>
+    update({ sort: !key || key === "name" ? "" : key });
+
+  const exportColumns = useMemo(
+    () => [
+      { header: "Name", value: (c) => c.name },
+      { header: "Phone", value: (c) => c.phone },
+      { header: "Email", value: (c) => c.email },
+      { header: "Address", value: (c) => c.address },
+      {
+        header: "Discount level (%)",
+        value: (c) => Number(c.discount_percent),
+      },
+      {
+        header: `Balance (${symbol}, positive = owes)`,
+        value: (c) => csvMoney(c.balance),
+      },
+      { header: "Orders", value: (c) => c.total_orders },
+      {
+        header: `Total spent (${symbol})`,
+        value: (c) => csvMoney(c.total_spent),
+      },
+      { header: "Last purchase", value: (c) => csvDate(c.last_purchase_at) },
+      { header: "Status", value: (c) => (c.is_active ? "Active" : "Inactive") },
+      { header: "Added", value: (c) => csvDate(c.created_at) },
+    ],
+    [symbol],
+  );
+  const fetchExportPage = (pg, pageSize) =>
+    listCustomers({ businessId, q, status, balance, sort, page: pg, pageSize });
 
   function afterChange(message) {
     setEditing(null);
@@ -152,15 +192,25 @@ export default function CustomersPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          {canWrite && (
+          {(canWrite || canExport) && (
             <div className="toolbar__actions">
-              <button
-                type="button"
-                className="btn btn--primary"
-                onClick={() => setEditing({ customer: null })}
-              >
-                <Plus size={16} aria-hidden="true" /> Add customer
-              </button>
+              {canExport && (
+                <ExportButton
+                  filename={`ledgerly-customers-${todayInLagos()}.csv`}
+                  columns={exportColumns}
+                  fetchPage={fetchExportPage}
+                  disabled={state.total === 0}
+                />
+              )}
+              {canWrite && (
+                <button
+                  type="button"
+                  className="btn btn--primary"
+                  onClick={() => setEditing({ customer: null })}
+                >
+                  <Plus size={16} aria-hidden="true" /> Add customer
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -265,11 +315,34 @@ export default function CustomersPage() {
               <table className="table table--stack">
                 <thead>
                   <tr>
-                    <th>Customer</th>
+                    <SortHeader
+                      label="Customer"
+                      keys={NAME_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
                     <th>Phone</th>
                     <th className="num">Discount</th>
-                    <th className="num">Balance</th>
-                    <th>Last purchase</th>
+                    <SortHeader
+                      label="Balance"
+                      className="num"
+                      keys={BALANCE_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
+                    <SortHeader
+                      label="Spent"
+                      className="num"
+                      keys={SPENT_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
+                    <SortHeader
+                      label="Last purchase"
+                      keys={LAST_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
                     <th>Status</th>
                     {canWrite && <th>Actions</th>}
                   </tr>
@@ -313,6 +386,9 @@ export default function CustomersPage() {
                               Credit {formatMoney(Math.abs(bal), symbol)}
                             </span>
                           )}
+                        </td>
+                        <td className="num" data-label="Spent">
+                          {formatMoney(c.total_spent, symbol)}
                         </td>
                         <td data-label="Last purchase">
                           {c.last_purchase_at

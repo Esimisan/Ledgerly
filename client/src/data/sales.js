@@ -27,6 +27,7 @@ export const SALE_SORTS = {
   newest: { label: "Newest first", column: "sold_at", ascending: false },
   oldest: { label: "Oldest first", column: "sold_at", ascending: true },
   total_desc: { label: "Largest total", column: "total", ascending: false },
+  total_asc: { label: "Smallest total", column: "total", ascending: true },
   owed_desc: {
     label: "Most owed",
     column: "amount_outstanding",
@@ -60,6 +61,7 @@ export async function listSales({
   unpaid = false,
   sort = "newest",
   page = 1,
+  pageSize = PAGE_SIZE,
 }) {
   let query = supabase
     .from("sales_with_details")
@@ -89,11 +91,11 @@ export async function listSales({
     );
 
   const { column, ascending } = SALE_SORTS[sort] ?? SALE_SORTS.newest;
-  const rangeFrom = (page - 1) * PAGE_SIZE;
+  const rangeFrom = (page - 1) * pageSize;
   const { data, count, error } = await query
     .order(column, { ascending })
     .order("id") // tiebreaker so pages never overlap
-    .range(rangeFrom, rangeFrom + PAGE_SIZE - 1);
+    .range(rangeFrom, rangeFrom + pageSize - 1);
 
   return { rows: data ?? [], total: count ?? 0, error: error?.message ?? "" };
 }

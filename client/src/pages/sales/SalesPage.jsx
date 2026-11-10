@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Plus, Search } from "lucide-react";
 import PageHeader from "../../components/layout/PageHeader";
 import Field from "../../components/ui/Field";
 import Pagination from "../../components/ui/Pagination";
+import SortHeader from "../../components/reports/SortHeader";
+import ExportButton from "../../components/reports/ExportButton";
 import {
   PaymentBadge,
   SaleStatusBadge,
@@ -13,8 +15,22 @@ import { useDebounced } from "../../hooks/useDebounced";
 import { getCustomer } from "../../data/customers";
 import { SALE_SORTS, listSales } from "../../data/sales";
 import { formatDateTime, formatMoney } from "../../lib/format";
+import { csvDateTime, csvMoney } from "../../lib/csv";
+import { todayInLagos } from "../../lib/analytics";
 
 const STATUSES = ["all", "completed", "voided"];
+
+// Which sort keys each sortable column heading sets (same keys as the "Sort by" menu).
+const DATE_KEYS = [
+  { key: "newest", dir: "desc" },
+  { key: "oldest", dir: "asc" },
+];
+const TOTAL_KEYS = [
+  { key: "total_desc", dir: "desc" },
+  { key: "total_asc", dir: "asc" },
+];
+const OWED_KEYS = [{ key: "owed_desc", dir: "desc" }];
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const validDate = (v) => DATE_RE.test(v ?? "") && !Number.isNaN(Date.parse(v));
@@ -24,6 +40,7 @@ export default function SalesPage() {
   const businessId = business.id;
   const symbol = business.currency_symbol ?? "₦";
   const canCreate = can("sales.create");
+  const canExport = can("reports.view");
 
   // List state lives in the URL, so back/forward and bookmarks work.
   const [params, setParams] = useSearchParams();
@@ -108,6 +125,49 @@ export default function SalesPage() {
     setParams({}, { replace: true });
   }
 
+  const changeSort = (key) =>
+    update({ sort: !key || key === "newest" ? "" : key });
+
+  // CSV of exactly what the filters show (never the cost columns).
+  const exportColumns = useMemo(
+    () => [
+      { header: "Sale number", value: (s) => s.sale_number },
+      { header: "Date and time", value: (s) => csvDateTime(s.sold_at) },
+      {
+        header: "Customer",
+        value: (s) => (s.customer_id ? s.customer_name : "Walk-in"),
+      },
+      { header: "Status", value: (s) => s.status },
+      { header: "Products", value: (s) => s.item_count },
+      { header: `Total (${symbol})`, value: (s) => csvMoney(s.total) },
+      { header: `Paid (${symbol})`, value: (s) => csvMoney(s.amount_paid) },
+      {
+        header: `Still owed (${symbol})`,
+        value: (s) => csvMoney(s.amount_outstanding),
+      },
+      {
+        header: `Refunded (${symbol})`,
+        value: (s) => csvMoney(s.refunded_total),
+      },
+      { header: "Returns", value: (s) => s.return_count },
+      { header: "Payment method", value: (s) => s.payment_method },
+    ],
+    [symbol],
+  );
+  const fetchExportPage = (pg, pageSize) =>
+    listSales({
+      businessId,
+      q,
+      status,
+      from,
+      to,
+      customerId: customer,
+      unpaid,
+      sort,
+      page: pg,
+      pageSize,
+    });
+
   return (
     <>
       <PageHeader
@@ -128,11 +188,21 @@ export default function SalesPage() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          {canCreate && (
+          {(canCreate || canExport) && (
             <div className="toolbar__actions">
-              <Link to="/sales/new" className="btn btn--primary">
-                <Plus size={16} aria-hidden="true" /> New sale
-              </Link>
+              {canExport && (
+                <ExportButton
+                  filename={`ledgerly-sales-${todayInLagos()}.csv`}
+                  columns={exportColumns}
+                  fetchPage={fetchExportPage}
+                  disabled={state.total === 0}
+                />
+              )}
+              {canCreate && (
+                <Link to="/sales/new" className="btn btn--primary">
+                  <Plus size={16} aria-hidden="true" /> New sale
+                </Link>
+              )}
             </div>
           )}
         </div>
@@ -264,11 +334,27 @@ export default function SalesPage() {
               <table className="table table--stack">
                 <thead>
                   <tr>
-                    <th>Sale</th>
+                    <SortHeader
+                      label="Sale"
+                      keys={DATE_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
                     <th>Customer</th>
                     <th className="num">Products</th>
-                    <th className="num">Total</th>
-                    <th>Payment</th>
+                    <SortHeader
+                      label="Total"
+                      className="num"
+                      keys={TOTAL_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
+                    <SortHeader
+                      label="Payment"
+                      keys={OWED_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
                     <th>Status</th>
                   </tr>
                 </thead>

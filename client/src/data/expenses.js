@@ -45,6 +45,7 @@ export async function listExpenses({
   to = "",
   sort = "newest",
   page = 1,
+  pageSize = PAGE_SIZE,
 }) {
   let query = supabase
     .from("expenses_with_details")
@@ -64,12 +65,12 @@ export async function listExpenses({
     );
 
   const { column, ascending } = EXPENSE_SORTS[sort] ?? EXPENSE_SORTS.newest;
-  const rangeFrom = (page - 1) * PAGE_SIZE;
+  const rangeFrom = (page - 1) * pageSize;
   const { data, count, error } = await query
     .order(column, { ascending })
     .order("created_at", { ascending: false })
     .order("id") // tiebreaker so pages never overlap
-    .range(rangeFrom, rangeFrom + PAGE_SIZE - 1);
+    .range(rangeFrom, rangeFrom + pageSize - 1);
 
   return { rows: data ?? [], total: count ?? 0, error: error?.message ?? "" };
 }

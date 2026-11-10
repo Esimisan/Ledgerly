@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { Paperclip, Plus, Search, Tags } from "lucide-react";
 import PageHeader from "../../components/layout/PageHeader";
 import Field from "../../components/ui/Field";
 import Pagination from "../../components/ui/Pagination";
+import SortHeader from "../../components/reports/SortHeader";
+import ExportButton from "../../components/reports/ExportButton";
 import MonthPicker from "../../components/layout/MonthPicker";
 import ExpenseSummary from "../../components/expenses/ExpenseSummary";
 import ExpenseModal from "../../components/expenses/ExpenseModal";
@@ -22,6 +24,8 @@ import {
 } from "../../data/expenses";
 import { PAYMENT_METHODS } from "../../data/sales";
 import { formatDateTime, formatMoney } from "../../lib/format";
+import { csvDate, csvDateTime, csvMoney } from "../../lib/csv";
+import { todayInLagos } from "../../lib/analytics";
 import { getReceiptUrl } from "../../lib/receipts";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -30,6 +34,16 @@ const validDate = (v) => DATE_RE.test(v ?? "") && !Number.isNaN(Date.parse(v));
 const METHOD_LABEL = Object.fromEntries(
   PAYMENT_METHODS.map((m) => [m.value, m.label]),
 );
+
+// Which sort keys each sortable column heading sets (same keys as the "Sort by" menu).
+const DATE_KEYS = [
+  { key: "newest", dir: "desc" },
+  { key: "oldest", dir: "asc" },
+];
+const AMOUNT_KEYS = [
+  { key: "amount_desc", dir: "desc" },
+  { key: "amount_asc", dir: "asc" },
+];
 
 // "2026-11" -> "November 2026"
 function monthLabel(key) {
@@ -45,6 +59,7 @@ export default function ExpensesPage() {
   const businessId = business.id;
   const symbol = business.currency_symbol ?? "₦";
   const canManage = can("expenses.manage");
+  const canExport = can("reports.view");
   const period = usePeriod();
 
   // List state lives in the URL, so back/forward and bookmarks work.
@@ -182,6 +197,37 @@ export default function ExpensesPage() {
     setParams({}, { replace: true });
   }
 
+  const changeSort = (key) =>
+    update({ sort: !key || key === "newest" ? "" : key });
+
+  const exportColumns = useMemo(
+    () => [
+      { header: "Date", value: (e) => csvDate(e.expense_date) },
+      { header: "Category", value: (e) => e.category_name },
+      { header: "Description", value: (e) => e.description },
+      { header: "Vendor", value: (e) => e.vendor },
+      { header: "Payment method", value: (e) => e.payment_method },
+      { header: `Amount (${symbol})`, value: (e) => csvMoney(e.amount) },
+      { header: "Status", value: (e) => (e.is_voided ? "Voided" : "Active") },
+      { header: "Void reason", value: (e) => e.void_reason },
+      { header: "Recorded by", value: (e) => e.created_by_name },
+      { header: "Recorded at", value: (e) => csvDateTime(e.created_at) },
+    ],
+    [symbol],
+  );
+  const fetchExportPage = (pg, pageSize) =>
+    listExpenses({
+      businessId,
+      q,
+      categoryId: category,
+      status,
+      from,
+      to,
+      sort,
+      page: pg,
+      pageSize,
+    });
+
   function afterChange(message) {
     setEditing(null);
     setVoiding(null);
@@ -285,6 +331,14 @@ export default function ExpensesPage() {
             />
           </div>
           <div className="toolbar__actions">
+            {canExport && (
+              <ExportButton
+                filename={`ledgerly-expenses-${todayInLagos()}.csv`}
+                columns={exportColumns}
+                fetchPage={fetchExportPage}
+                disabled={state.total === 0}
+              />
+            )}
             {canManage && (
               <button
                 type="button"
@@ -430,10 +484,21 @@ export default function ExpensesPage() {
                   <tr>
                     <th>Expense</th>
                     <th>Category</th>
-                    <th>Date</th>
+                    <SortHeader
+                      label="Date"
+                      keys={DATE_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
                     <th>Method</th>
                     <th>Receipt</th>
-                    <th className="num">Amount</th>
+                    <SortHeader
+                      label="Amount"
+                      className="num"
+                      keys={AMOUNT_KEYS}
+                      current={sort}
+                      onSort={changeSort}
+                    />
                     {canManage && <th>Actions</th>}
                   </tr>
                 </thead>

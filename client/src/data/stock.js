@@ -12,6 +12,23 @@ export const MOVEMENT_TYPES = {
   adjustment: { label: "Adjusted", tone: "accent" },
 };
 
+// Sort keys for the movements list (the URL's ?sort=).
+export const MOVEMENT_SORTS = {
+  newest: { label: "Newest first", column: "created_at", ascending: false },
+  oldest: { label: "Oldest first", column: "created_at", ascending: true },
+  product: { label: "Product (A–Z)", column: "product_name", ascending: true },
+  increase: {
+    label: "Biggest increase",
+    column: "quantity_change",
+    ascending: false,
+  },
+  decrease: {
+    label: "Biggest decrease",
+    column: "quantity_change",
+    ascending: true,
+  },
+};
+
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 export const isDateParam = (s) => DATE.test(s ?? "");
 
@@ -32,7 +49,9 @@ export async function listMovements({
   type = "",
   from = "",
   to = "",
+  sort = "newest",
   page = 1,
+  pageSize = PAGE_SIZE,
 }) {
   let query = supabase
     .from("stock_movements_with_details")
@@ -53,11 +72,13 @@ export async function listMovements({
   if (start) query = query.gte("created_at", start);
   if (end) query = query.lte("created_at", end);
 
-  const offset = (page - 1) * PAGE_SIZE;
+  const { column, ascending } = MOVEMENT_SORTS[sort] ?? MOVEMENT_SORTS.newest;
+  const offset = (page - 1) * pageSize;
   const { data, count, error } = await query
+    .order(column, { ascending })
     .order("created_at", { ascending: false })
     .order("id") // stable ordering so pages never overlap
-    .range(offset, offset + PAGE_SIZE - 1);
+    .range(offset, offset + pageSize - 1);
 
   return { rows: data ?? [], total: count ?? 0, error: error?.message ?? "" };
 }

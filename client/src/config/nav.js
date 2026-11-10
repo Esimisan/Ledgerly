@@ -11,7 +11,18 @@ import {
 
 export const MAIN_NAV = [
   { to: "/", label: "Overview", icon: LayoutDashboard },
-  { to: "/products", label: "Products", icon: Package },
+  {
+    to: "/products",
+    label: "Products",
+    icon: Package,
+    children: [
+      {
+        to: "/products/import",
+        label: "Import products",
+        permission: "import.run",
+      },
+    ],
+  },
   {
     to: "/inventory",
     label: "Inventory",

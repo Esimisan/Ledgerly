@@ -118,3 +118,47 @@
   --shadow-md: 0 0.25rem 1.25rem rgb(0 0 0 / 0.35);
   --shadow-lg: 0 1rem 3rem rgb(0 0 0 / 0.55);
 }
+
+/* ===== Print: while the Reports page is open (it adds body.rp-printing), paper is white
+   and the text is dark, whichever theme is on screen. ===== */
+@media print {
+  body.rp-printing {
+    color-scheme: light;
+
+    --bg: #ffffff;
+    --bg-sidebar: #ffffff;
+    --surface: #ffffff;
+    --surface-2: #f4f4f6;
+    --surface-overlay: #ffffff;
+
+    --text: #111111;
+    --text-muted: #555555;
+    --text-faint: #777777;
+
+    --border: #d9d9de;
+    --border-strong: #b5b5bd;
+
+    --accent: #5b21b6;
+    --accent-hover: #4c1d95;
+    --accent-contrast: #ffffff;
+    --accent-text: #5b21b6;
+    --accent-soft: #efe9fb;
+    --focus-ring: #7c3aed;
+
+    --success: #15803d;
+    --success-soft: #e5f6ec;
+    --warning: #a04708;
+    --warning-soft: #fdeedd;
+    --danger: #b32f2f;
+    --danger-soft: #fce8e8;
+    --on-danger: #ffffff;
+
+    --chart-1: #5b21b6;
+    --chart-1-fill: rgb(91 33 182 / 0.14);
+    --chart-grid: #e3e3e8;
+
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+  }
+}

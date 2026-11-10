@@ -1,0 +1,373 @@
+/* Reports, export and sortable headers (Step 12). Colours come only from tokens. */
+
+/* ---------- Sortable table headings ---------- */
+.sort-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.sort-btn:hover {
+  color: var(--text);
+}
+.sort-btn:focus-visible {
+  outline: 0.125rem solid var(--focus-ring);
+  outline-offset: 0.125rem;
+  border-radius: var(--radius-sm);
+}
+.sort-btn__icon {
+  flex: none;
+  color: var(--text-faint);
+}
+.sort-btn.is-active,
+.sort-btn.is-active .sort-btn__icon {
+  color: var(--accent-text);
+}
+th.num .sort-btn {
+  justify-content: flex-end;
+}
+
+/* ---------- Export button ---------- */
+.export {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5em 0.75em;
+  min-width: 0;
+}
+.export__msg {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.export__msg--error {
+  color: var(--danger);
+}
+
+/* ---------- Four filters in a row on list screens (stock movements) ---------- */
+.toolbar__filters.rp-filters-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11em), 1fr));
+  gap: var(--space-3);
+}
+
+/* ---------- Report page ---------- */
+.rp-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+/* field rows: one column, three when there is room (container query, not viewport) */
+.rp-controls,
+.rp-range {
+  container-type: inline-size;
+}
+.rp-controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+.rp-controls__grid,
+.rp-range__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+}
+@container (min-width: 34em) {
+  .rp-controls__grid,
+  .rp-range__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+.rp-range__text {
+  margin-top: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.rp-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+.rp-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.rp-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.rp-chart {
+  min-width: 0;
+}
+.rp-muted {
+  color: var(--text-muted);
+}
+
+/* ---------- Loading skeleton ---------- */
+.rp-skel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75em;
+}
+.rp-skel__line {
+  height: 1em;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+  animation: rp-pulse 1.2s ease-in-out infinite;
+}
+@keyframes rp-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rp-skel__line {
+    animation: none;
+  }
+}
+
+/* ---------- Summary strip ---------- */
+.rp-strip {
+  container-type: inline-size;
+}
+.rp-strip__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+}
+@container (min-width: 40em) {
+  .rp-strip__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.rp-strip__item {
+  min-width: 0;
+  padding: 0.75em 1em;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-2);
+}
+.rp-strip__item dt {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.rp-strip__item dd {
+  margin: 0.125em 0 0;
+  font-size: var(--text-lg);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Table extras ---------- */
+.rp-total-row td,
+.rp-total-row th {
+  font-weight: 600;
+  background: var(--surface-2);
+}
+.rp-share {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  min-width: 0;
+}
+.rp-share__track {
+  flex: 1;
+  min-width: 3em;
+  height: 0.5em;
+  border-radius: var(--radius-pill);
+  background: var(--surface-2);
+  overflow: hidden;
+}
+.rp-share__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--chart-1);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+/* ---------- Profit and loss statement ---------- */
+.rp-statement {
+  width: 100%;
+  border-collapse: collapse;
+}
+.rp-statement td {
+  padding: 0.5em 0;
+  border-bottom: 1px solid var(--border);
+  vertical-align: baseline;
+}
+.rp-statement td:last-child {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  padding-left: 1em;
+}
+.rp-statement__sub td:first-child {
+  padding-left: 1.25em;
+  color: var(--text-muted);
+}
+.rp-statement__sub td:last-child {
+  color: var(--text-muted);
+}
+.rp-statement__total td {
+  font-weight: 600;
+  border-top: 1px solid var(--border-strong);
+}
+.rp-statement__grand td {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  border-bottom: 0;
+}
+
+/* ---------- Import page ---------- */
+.rp-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+.rp-list {
+  margin: 0;
+  padding-left: 1.25em;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.25em;
+}
+
+/* ---------- Print ---------- */
+.rp-printhead {
+  display: none;
+}
+@media print {
+  @page {
+    margin: 12mm;
+  }
+  body.rp-printing .sidebar,
+  body.rp-printing .backdrop,
+  body.rp-printing .skip-link,
+  body.rp-printing .page-header,
+  body.rp-printing .rp-noprint,
+  body.rp-printing .rp-toolbar {
+    display: none !important;
+  }
+  body.rp-printing .main {
+    margin-left: 0 !important;
+    padding: 0 !important;
+  }
+  body.rp-printing .main__inner {
+    max-width: none;
+  }
+  body.rp-printing .card {
+    box-shadow: none;
+    border: 1px solid var(--border);
+  }
+  body.rp-printing .rp-printhead {
+    display: block;
+  }
+  body.rp-printing .rp-printhead h2 {
+    margin: 0.25em 0;
+    font-size: var(--text-xl);
+  }
+  body.rp-printing .rp-printhead p {
+    margin: 0;
+    color: var(--text-muted);
+  }
+  body.rp-printing .table-wrap {
+    overflow: visible;
+  }
+  body.rp-printing thead {
+    display: table-header-group;
+  }
+  body.rp-printing tr,
+  body.rp-printing .rp-strip__item {
+    break-inside: avoid;
+  }
+}
+
+/* ---------- Sales summary totals on a phone: one two-column panel ---------- */
+@media screen and (max-width: 47.99em) {
+  /* make the table and its footer as wide as the card, so the panel fills the screen */
+  .table--stack.rp-sum-table,
+  .rp-sum-table .rp-sum {
+    display: block;
+    width: 100%;
+  }
+  .rp-sum-table .rp-sum {
+    margin-top: var(--space-4);
+  }
+
+  /* three rows, filled column by column: cells 3-5 (Gross sales, Refunds, Revenue) on the left,
+     cells 6-8 (Units, Cost of goods, Gross profit) on the right */
+  .rp-sum-table .rp-sum tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(3, auto);
+    grid-auto-flow: column;
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--surface-2);
+  }
+
+  /* the "Total" heading and Orders are not shown here (Orders is in the strip above) */
+  .rp-sum-table .rp-sum td:nth-child(-n + 2) {
+    display: none;
+  }
+
+  /* each cell: the name on top, the amount underneath, never wrapped */
+  .rp-sum-table .rp-sum td {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.125em;
+    min-width: 0;
+    padding: 0.75em 0;
+    border: 0;
+    background: none;
+    font-size: var(--text-base);
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text);
+    text-align: left;
+    white-space: nowrap;
+  }
+  .rp-sum-table .rp-sum td::before {
+    content: attr(data-label);
+    position: static;
+    display: block;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    font-size: var(--text-sm);
+    font-weight: 400;
+    color: var(--text-muted);
+    text-align: left;
+    white-space: normal;
+  }
+
+  /* a thin divider between the two columns, with room either side */
+  .rp-sum-table .rp-sum td:nth-child(n + 3):nth-child(-n + 5) {
+    padding-right: var(--space-3);
+  }
+  .rp-sum-table .rp-sum td:nth-child(n + 6) {
+    padding-left: var(--space-4);
+    border-left: 1px solid var(--border-strong);
+  }
+}

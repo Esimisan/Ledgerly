@@ -31,6 +31,7 @@ export async function listCustomers({
   balance = "",
   sort = "name",
   page = 1,
+  pageSize = PAGE_SIZE,
 }) {
   let query = supabase
     .from("customers")
@@ -50,14 +51,14 @@ export async function listCustomers({
 
   const { column, ascending, nullsFirst } =
     CUSTOMER_SORTS[sort] ?? CUSTOMER_SORTS.name;
-  const from = (page - 1) * PAGE_SIZE;
+  const from = (page - 1) * pageSize;
   const { data, count, error } = await query
     .order(column, {
       ascending,
       ...(nullsFirst === undefined ? {} : { nullsFirst }),
     })
     .order("id") // tiebreaker so pages never overlap
-    .range(from, from + PAGE_SIZE - 1);
+    .range(from, from + pageSize - 1);
 
   return { rows: data ?? [], total: count ?? 0, error: error?.message ?? "" };
 }
