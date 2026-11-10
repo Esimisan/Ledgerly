@@ -33,7 +33,7 @@ const CHANGE_KEYS = [
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function MovementsTab() {
-  const { business } = useAuth();
+  const { business, can } = useAuth();
   const canExport = can("reports.view");
   const canSeeCost = can("finance.view");
   const businessId = business.id;
