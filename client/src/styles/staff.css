@@ -1,0 +1,216 @@
+/* Staff page, invitations, role permissions and the access screens (Step 13). */
+
+.st-spin {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 0;
+  color: var(--text-muted);
+}
+
+.st-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.st-toolbar > div {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+/* ----- People and invitation rows ----- */
+.st-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  container-type: inline-size;
+}
+.st-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.875rem 0;
+  border-top: 1px solid var(--border);
+}
+.st-row:first-child {
+  padding-top: 0.25rem;
+  border-top: 0;
+}
+.st-row__who {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.st-who {
+  min-width: 0;
+}
+.st-avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+.st-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.st-email,
+.st-joined {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+.st-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.st-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+@container (min-width: 42em) {
+  .st-row {
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.2fr) auto;
+    align-items: center;
+    gap: 1rem;
+  }
+  .st-actions {
+    justify-content: flex-end;
+  }
+}
+
+/* ----- Invite link ----- */
+.st-linkbox {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+.st-linkbox .field {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+/* ----- Role permissions ----- */
+.st-role-pick {
+  max-width: 20rem;
+}
+.st-perm-wrap {
+  container-type: inline-size;
+}
+.st-perm-group {
+  margin-top: 1.25rem;
+}
+.st-perm-group h3 {
+  margin: 0 0 0.5rem;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.st-perm-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+}
+@container (min-width: 44em) {
+  .st-perm-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.st-perm {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  cursor: pointer;
+}
+.st-perm:focus-within {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+.st-perm input {
+  flex: none;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.15rem;
+  accent-color: var(--accent);
+}
+.st-perm--locked {
+  background: var(--surface-2);
+  cursor: default;
+}
+.st-perm__text {
+  min-width: 0;
+}
+.st-perm__label {
+  display: block;
+  font-weight: 600;
+}
+.st-perm__desc {
+  display: block;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.st-savebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+/* ----- Ownership transfer ----- */
+.st-danger {
+  border: 1px solid var(--danger);
+}
+
+/* ----- Accept-invite and locked-out screens ----- */
+.st-gate {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  min-height: 100dvh;
+  padding: 1.25rem;
+  background: var(--bg);
+}
+.st-gate__card {
+  width: 100%;
+  max-width: 30rem;
+}
+.st-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+.st-facts dt {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.st-facts dd {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.st-gap {
+  margin-top: 0.75rem;
+}

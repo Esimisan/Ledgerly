@@ -297,6 +297,31 @@ export const TOURS = {
       },
     ],
   },
+  staff: {
+    title: "Staff",
+    steps: [
+      {
+        title: "Your team",
+        text: "Everyone with access to this business is listed here with their role and status. You can change a role or suspend someone. Nobody is ever deleted, and their records stay.",
+        permission: "staff.manage",
+      },
+      {
+        title: "Invite someone",
+        text: "Choose Invite someone, enter their email and pick a role. No email is sent: copy the link and send it yourself. They sign up or sign in with that same email, then open the link to join. Each link works once and expires.",
+        permission: "staff.manage",
+      },
+      {
+        title: "What each role can do",
+        text: "Pick a role under Role permissions and tick what it is allowed to do, or restore the defaults. Admins always keep Manage staff and Manage settings. People who are already signed in see changes after a refresh.",
+        permission: "staff.manage",
+      },
+      {
+        title: "Handing over the business",
+        text: "If you are the owner, Transfer ownership gives the business to an active admin and makes you an admin. You confirm by typing the business name.",
+        permission: "staff.manage",
+      },
+    ],
+  },
   "stock-movements": {
     title: "Stock movements",
     steps: [

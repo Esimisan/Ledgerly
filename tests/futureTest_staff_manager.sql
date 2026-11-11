@@ -70,8 +70,13 @@ begin
   -- Seed: one product, one March 2025 sale (200, cost 80), one expense (20).
   select c.id into v_cat from public.expense_categories c where c.business_id = v_biz order by c.created_at limit 1;
   delete from public.business_members where business_id = v_biz and user_id in (v_staff, v_manager);
-  insert into public.business_members (business_id, user_id, role, status) values
+  insert into auth.users (id, instance_id, aud, role, email) values
+    (v_staff,   '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'zz-staff@t.local'),
+    (v_manager, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'zz-manager@t.local');
+
+insert into public.business_members (business_id, user_id, role, status) values
     (v_biz, v_staff, 'staff', 'active'), (v_biz, v_manager, 'manager', 'active');
+    
   insert into public.products (id, business_id, name, cost_price, selling_price, quantity_on_hand, min_stock_level)
     values (v_p, v_biz, 'ZT SP', 40, 100, 50, 5);
   insert into public.sales (id, business_id, sale_number, customer_id, status, sold_at, subtotal,
