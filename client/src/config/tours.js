@@ -322,6 +322,31 @@ export const TOURS = {
       },
     ],
   },
+  "audit-log": {
+    title: "Audit log",
+    steps: [
+      {
+        title: "Who did what",
+        text: "Every important change is recorded here with who made it and when, newest first. Open it any time you need to know what happened.",
+        permission: "audit.view",
+      },
+      {
+        title: "Find an entry",
+        text: "Pick dates, a person or an area, such as Staff, Sales or Products, to narrow the list. Clear filters brings everything back.",
+        permission: "audit.view",
+      },
+      {
+        title: "What is recorded",
+        text: "Team and role changes, invitations, business settings, price changes, voided sales and expenses, returns, and stock and balance adjustments. Passwords and invitation links are never recorded.",
+        permission: "audit.view",
+      },
+      {
+        title: "Read-only, with export",
+        text: "Entries cannot be edited or deleted by anyone. Export CSV downloads exactly the entries you are looking at, ready for Excel.",
+        permission: "audit.view",
+      },
+    ],
+  },
   "stock-movements": {
     title: "Stock movements",
     steps: [

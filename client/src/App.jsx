@@ -35,6 +35,7 @@ import PurchaseOrdersPage from "./pages/purchases/PurchaseOrdersPage";
 import PurchaseOrderFormPage from "./pages/purchases/PurchaseOrderFormPage";
 import PurchaseOrderDetailPage from "./pages/purchases/PurchaseOrderDetailPage";
 import StaffPage from "./pages/staff/StaffPage";
+import AuditLogPage from "./pages/audit/AuditLogPage";
 
 // Dev-only: not included in production builds.
 const DesignKit = import.meta.env.DEV
@@ -130,10 +131,7 @@ export default function App() {
               <Route path="settings/staff" element={<StaffPage />} />
             </Route>
             <Route element={<RequirePermission permission="audit.view" />}>
-              <Route
-                path="settings/audit-log"
-                element={<Placeholder title="Audit log" step={14} />}
-              />
+              <Route path="settings/audit-log" element={<AuditLogPage />} />
             </Route>
             {DesignKit && (
               <Route
