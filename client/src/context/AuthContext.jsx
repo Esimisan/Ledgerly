@@ -10,6 +10,8 @@ import { supabase } from "../lib/supabase";
 
 const AuthContext = createContext(null);
 const ACTIVE_KEY = "ledgerly-active-business";
+const NO_MEMBERSHIPS = { userId: null, list: [] };
+const NO_PERMISSIONS = [];
 
 const readActive = () => {
   try {
@@ -39,7 +41,7 @@ async function fetchMemberships(userId) {
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(undefined); // undefined = still resolving
-  const [memberships, setMemberships] = useState(null); // null = not loaded yet
+  const [membershipState, setMembershipState] = useState(NO_MEMBERSHIPS);
   const [activeId, setActiveId] = useState(readActive);
   const [permState, setPermState] = useState({ key: null, list: [] });
   const [loadError, setLoadError] = useState("");
@@ -47,27 +49,31 @@ export function AuthProvider({ children }) {
   const user = session?.user ?? null;
   const userId = user?.id ?? null;
 
+  // null = not loaded yet for this user (derived, so nothing is reset inside an effect)
+  const memberships =
+    userId && membershipState.userId === userId ? membershipState.list : null;
+
   // 1) Session. The listener only stores the session: no awaited Supabase calls in here.
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const apply = (next) => {
+      setSession(next);
+      if (!next) setMembershipState(NO_MEMBERSHIPS);
+    };
+    supabase.auth.getSession().then(({ data }) => apply(data.session));
     const { data } = supabase.auth.onAuthStateChange((_event, next) =>
-      setSession(next),
+      apply(next),
     );
     return () => data.subscription.unsubscribe();
   }, []);
 
   // 2) Memberships, keyed on the user id (token refreshes don't retrigger this).
   useEffect(() => {
-    if (!userId) {
-      setMemberships(null);
-      return;
-    }
+    if (!userId) return undefined;
     let cancelled = false;
-    setMemberships(null);
     fetchMemberships(userId).then(({ list, error }) => {
       if (cancelled) return;
       setLoadError(error);
-      setMemberships(list);
+      setMembershipState({ userId, list });
     });
     return () => {
       cancelled = true;
@@ -84,15 +90,12 @@ export function AuthProvider({ children }) {
   );
   const activeBusinessId = active?.businessId ?? null;
   const activeRole = active?.role ?? null;
+  const isOwnerRole = activeRole === "owner";
   const permKey = active ? `${activeBusinessId}:${activeRole}` : null;
 
   // 4) Permissions for that role. The owner passes every check, so nothing to fetch.
   useEffect(() => {
-    if (!activeBusinessId) return;
-    if (activeRole === "owner") {
-      setPermState({ key: permKey, list: [] });
-      return;
-    }
+    if (!activeBusinessId || activeRole === "owner") return undefined;
     let cancelled = false;
     supabase
       .from("role_permissions")
@@ -112,18 +115,18 @@ export function AuthProvider({ children }) {
     };
   }, [activeBusinessId, activeRole, permKey]);
 
+  const permsReady = isOwnerRole || permState.key === permKey;
+  const permList = isOwnerRole ? NO_PERMISSIONS : permState.list;
+
   let status;
   if (session === undefined) status = "loading";
   else if (!session) status = "signedOut";
   else if (memberships === null) status = "loading";
   else if (!active) status = "needsBusiness";
-  else if (permState.key !== permKey) status = "loading";
+  else if (!permsReady) status = "loading";
   else status = "ready";
 
-  const permissionSet = useMemo(
-    () => new Set(permState.list),
-    [permState.list],
-  );
+  const permissionSet = useMemo(() => new Set(permList), [permList]);
   const can = useCallback(
     (permission) => activeRole === "owner" || permissionSet.has(permission),
     [activeRole, permissionSet],
@@ -179,13 +182,22 @@ export function AuthProvider({ children }) {
       const { list } = await fetchMemberships(userId); // pick up the new owner membership
       try {
         localStorage.setItem(ACTIVE_KEY, data);
-      } catch {}
+      } catch {
+        /* ignore */
+      }
       setActiveId(data);
-      setMemberships(list);
+      setMembershipState({ userId, list });
       return data;
     },
     [userId],
   );
+
+  // Reload the memberships after the business settings change. A failed reload keeps what we have.
+  const refreshMemberships = useCallback(async () => {
+    if (!userId) return;
+    const { list, error } = await fetchMemberships(userId);
+    if (!error) setMembershipState({ userId, list });
+  }, [userId]);
 
   const value = useMemo(
     () => ({
@@ -196,14 +208,15 @@ export function AuthProvider({ children }) {
       memberships: memberships ?? [],
       business: active?.business ?? null,
       role: activeRole,
-      isOwner: activeRole === "owner",
-      permissions: permState.list,
+      isOwner: isOwnerRole,
+      permissions: permList,
       can,
       signUp,
       signIn,
       signOut,
       switchBusiness,
       createBusiness,
+      refreshMemberships,
     }),
     [
       status,
@@ -213,17 +226,20 @@ export function AuthProvider({ children }) {
       memberships,
       active,
       activeRole,
-      permState.list,
+      isOwnerRole,
+      permList,
       can,
       signUp,
       signIn,
       signOut,
       switchBusiness,
       createBusiness,
+      refreshMemberships,
     ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

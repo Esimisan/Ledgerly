@@ -76,5 +76,10 @@ export const SETTINGS_NAV = {
   children: [
     { to: "/settings/staff", label: "Staff", permission: "staff.manage" },
     { to: "/settings/audit-log", label: "Audit log", permission: "audit.view" },
+    {
+      to: "/settings/backups",
+      label: "Backups and exports",
+      permission: "backups.manage",
+    },
   ],
 };

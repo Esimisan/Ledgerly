@@ -322,6 +322,44 @@ export const TOURS = {
       },
     ],
   },
+  settings: {
+    title: "Settings",
+    steps: [
+      {
+        title: "Business details",
+        text: "Set your business name, contact details, currency, timezone and tax rate, and add your logo. Changing the currency changes the symbol shown; amounts you already recorded are not converted.",
+        permission: "settings.manage",
+      },
+      {
+        title: "Your profile",
+        text: "Update your name, phone number and picture. Your sign-in email cannot be changed here.",
+      },
+      {
+        title: "Change your password",
+        text: "Enter your current password first, then choose a new one of at least 8 characters.",
+      },
+    ],
+  },
+  backups: {
+    title: "Backups and exports",
+    steps: [
+      {
+        title: "Open your data in Excel",
+        text: "Download Products, Customers, Sales or Expenses as a spreadsheet file. Double-click the file to open it in Excel or Google Sheets.",
+        permission: "backups.manage",
+      },
+      {
+        title: "The full backup file",
+        text: "The backup file is a complete copy for safekeeping. You cannot open it in Excel. If something goes wrong, a developer can use it to bring your data back, because restoring is not available in the app yet.",
+        permission: "backups.manage",
+      },
+      {
+        title: "Keep it safe",
+        text: "Store downloaded files somewhere other than this computer. They do not include pictures, receipts, logos or sign-in accounts.",
+        permission: "backups.manage",
+      },
+    ],
+  },
   "audit-log": {
     title: "Audit log",
     steps: [

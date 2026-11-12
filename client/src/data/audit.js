@@ -10,6 +10,7 @@ export const AUDIT_AREAS = [
   "Expenses",
   "Customers",
   "Stock",
+  "Backups",
 ];
 
 const fail = (error) =>

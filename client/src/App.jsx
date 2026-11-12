@@ -19,7 +19,6 @@ import AcceptInvitePage from "./pages/auth/AcceptInvitePage";
 import Overview from "./pages/Overview";
 import AnalyticsPage from "./pages/analytics/AnalyticsPage";
 import ReportsPage from "./pages/analytics/ReportsPage";
-import Placeholder from "./pages/Placeholder";
 import { NotFound } from "./pages/Status";
 import SuppliersPage from "./pages/suppliers/SuppliersPage";
 import InventoryPage from "./pages/inventory/InventoryPage";
@@ -36,6 +35,8 @@ import PurchaseOrderFormPage from "./pages/purchases/PurchaseOrderFormPage";
 import PurchaseOrderDetailPage from "./pages/purchases/PurchaseOrderDetailPage";
 import StaffPage from "./pages/staff/StaffPage";
 import AuditLogPage from "./pages/audit/AuditLogPage";
+import SettingsPage from "./pages/settings/SettingsPage";
+import BackupsPage from "./pages/backups/BackupsPage";
 
 // Dev-only: not included in production builds.
 const DesignKit = import.meta.env.DEV
@@ -123,15 +124,15 @@ export default function App() {
             <Route element={<RequirePermission permission="reports.view" />}>
               <Route path="analytics/reports" element={<ReportsPage />} />
             </Route>
-            <Route
-              path="settings"
-              element={<Placeholder title="Settings" step={14} />}
-            />
+            <Route path="settings" element={<SettingsPage />} />
             <Route element={<RequirePermission permission="staff.manage" />}>
               <Route path="settings/staff" element={<StaffPage />} />
             </Route>
             <Route element={<RequirePermission permission="audit.view" />}>
               <Route path="settings/audit-log" element={<AuditLogPage />} />
+            </Route>
+            <Route element={<RequirePermission permission="backups.manage" />}>
+              <Route path="settings/backups" element={<BackupsPage />} />
             </Route>
             {DesignKit && (
               <Route
