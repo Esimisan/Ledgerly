@@ -1,5 +1,90 @@
 // First-visit tutorial text, kept as plain data (rule 11). The tutorial engine and A step with a `permission` is shown only to roles that have it.
 export const TOURS = {
+  overview: {
+    title: "Overview",
+    steps: [
+      {
+        title: "Your business at a glance",
+        text: "The cards at the top show revenue, expenses, profit and orders for the month you picked. Use the month menu at the top to look at another month.",
+      },
+      {
+        title: "Sales over time",
+        text: "The chart shows how your sales moved. Use Weekly, Monthly or Daily to zoom in or out.",
+      },
+      {
+        title: "Needs attention",
+        text: "A short list of things worth a look next, such as low stock or products that are selling less. Each one links to the page where you can act on it.",
+      },
+    ],
+  },
+  products: {
+    title: "Products",
+    steps: [
+      {
+        title: "Your product catalogue",
+        text: "Every product you sell is listed here. A product stays in the catalogue even when its stock reaches zero.",
+      },
+      {
+        title: "Add a product",
+        text: "Choose Add product to save a name, SKU, category, prices, minimum stock level and a picture.",
+        permission: "products.write",
+      },
+      {
+        title: "Add many at once",
+        text: "Import products adds or updates many products from one CSV file, after showing you what will change.",
+        permission: "import.run",
+      },
+    ],
+  },
+  "product-form": {
+    title: "A product",
+    steps: [
+      {
+        title: "Name, SKU and category",
+        text: "Give the product a clear name. A SKU (product code) and a category make it easier to find later.",
+      },
+      {
+        title: "Prices and stock level",
+        text: "The purchase price is what you pay for it and the selling price is what the customer pays. The minimum stock level is the number at which you want a low-stock warning.",
+      },
+      {
+        title: "Picture and status",
+        text: "Add a picture so the product is easy to spot. A product you no longer sell can be made inactive instead of deleted, and its history is kept.",
+      },
+    ],
+  },
+  inventory: {
+    title: "Inventory",
+    steps: [
+      {
+        title: "What you have in stock",
+        text: "Each product is listed with the quantity you have now. Products at or below their minimum stock level are the ones to reorder.",
+      },
+      {
+        title: "Every change is recorded",
+        text: "Stock coming in, being sold, returned, damaged or counted again is saved as a stock movement, so you can always see why a number changed.",
+      },
+      {
+        title: "Suppliers and orders",
+        text: "Use the Suppliers page for the people you buy from, and Purchase orders to order and receive stock.",
+        permission: "purchases.manage",
+      },
+    ],
+  },
+  suppliers: {
+    title: "Suppliers",
+    steps: [
+      {
+        title: "Who you buy from",
+        text: "Your suppliers are listed here with their contact details.",
+      },
+      {
+        title: "Add a supplier",
+        text: "Choose Add supplier to save a new one. You can then pick them on products and on purchase orders.",
+        permission: "suppliers.manage",
+      },
+    ],
+  },
   customers: {
     title: "Customers",
     steps: [
