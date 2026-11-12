@@ -4,11 +4,13 @@ import {
   formatQty,
   humanize,
 } from "../../lib/format";
+import ReceiptLogo from "./ReceiptLogo";
 
 // Always rendered in the light theme (data-theme="light"), so it looks like paper
 // on screen and prints correctly even while the app is in Dark mode.
 export default function Receipt({
   businessName,
+  logoPath,
   sale,
   items,
   payments,
@@ -26,6 +28,7 @@ export default function Receipt({
       aria-label={`${title} ${sale.sale_label}`}
     >
       <header className="receipt__head">
+        <ReceiptLogo path={logoPath} />
         <p className="receipt__business">{businessName}</p>
         <h2 className="receipt__title">{title}</h2>
         <p className="receipt__meta">

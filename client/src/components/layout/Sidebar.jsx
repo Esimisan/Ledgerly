@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { ChevronDown, X } from "lucide-react";
+import { BookOpen, ChevronDown, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useShell } from "../../context/ShellContext";
 import { MAIN_NAV, SETTINGS_NAV } from "../../config/nav";
@@ -86,6 +86,12 @@ export default function Sidebar() {
 
         <div className="sidebar__footer">
           <ul className="nav">
+            <li>
+              <NavLink to="/guide" className="nav__link">
+                <BookOpen size={18} aria-hidden="true" />
+                <span>Guide</span>
+              </NavLink>
+            </li>
             <NavItem item={SETTINGS_NAV} />
             {import.meta.env.DEV && (
               <li>

@@ -37,6 +37,7 @@ import StaffPage from "./pages/staff/StaffPage";
 import AuditLogPage from "./pages/audit/AuditLogPage";
 import SettingsPage from "./pages/settings/SettingsPage";
 import BackupsPage from "./pages/backups/BackupsPage";
+import GuidePage from "./pages/guide/GuidePage";
 
 // Dev-only: not included in production builds.
 const DesignKit = import.meta.env.DEV
@@ -124,6 +125,7 @@ export default function App() {
             <Route element={<RequirePermission permission="reports.view" />}>
               <Route path="analytics/reports" element={<ReportsPage />} />
             </Route>
+            <Route path="guide" element={<GuidePage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route element={<RequirePermission permission="staff.manage" />}>
               <Route path="settings/staff" element={<StaffPage />} />

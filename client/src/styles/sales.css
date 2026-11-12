@@ -266,6 +266,23 @@
   font-size: var(--text-xl);
   font-weight: 500;
 }
+/* Business logo above the name: small, never stretches the receipt */
+.receipt__logo {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 0.25rem;
+}
+.receipt__logo:empty {
+  display: none;
+}
+.receipt__logo img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 12rem);
+  max-height: 4rem;
+  object-fit: contain;
+}
 .receipt__meta {
   color: var(--text-muted);
   font-size: var(--text-sm);

@@ -23,7 +23,7 @@ import {
   formatQty,
   humanize,
 } from "../../lib/format";
-
+import { printWhenReady } from "../../lib/printWhenReady";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export default function SaleDetailPage() {
@@ -38,8 +38,11 @@ export default function SaleDetailPage() {
   const [notice, setNotice] = useState("");
   const [reload, setReload] = useState(0);
 
-  const [state, setState] = useState({
-    loading: true,
+  // `key` records which sale and reload the data belongs to. The page counts as
+  // loading until it matches, so no state is set at the start of the effect.
+  const loadKey = `${saleId}:${reload}`;
+  const [raw, setState] = useState({
+    key: "",
     sale: null,
     items: [],
     payments: [],
@@ -49,19 +52,15 @@ export default function SaleDetailPage() {
   });
 
   useEffect(() => {
-    if (!validId) {
-      setState((s) => ({ ...s, loading: false, sale: null, error: "" }));
-      return;
-    }
+    if (!validId) return undefined;
     let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
     (async () => {
       const { data: sale, error } = await getSale(businessId, saleId);
       if (cancelled) return;
       if (error || !sale) {
         setState((s) => ({
           ...s,
-          loading: false,
+          key: loadKey,
           sale: null,
           error: error?.message ?? "",
         }));
@@ -78,7 +77,7 @@ export default function SaleDetailPage() {
       );
       if (cancelled) return;
       setState({
-        loading: false,
+        key: loadKey,
         sale,
         items: items.rows,
         payments: payments.rows,
@@ -91,10 +90,23 @@ export default function SaleDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [businessId, saleId, validId, reload]);
+  }, [businessId, saleId, validId, loadKey]);
+
+  // A bad link shows "Sale not found"; otherwise loading lasts until the data
+  // for this sale has arrived.
+  const state = validId
+    ? { ...raw, loading: raw.key !== loadKey }
+    : {
+        loading: false,
+        sale: null,
+        items: [],
+        payments: [],
+        returns: [],
+        returnItems: [],
+        error: "",
+      };
 
   const { sale, items, payments, returns, returnItems } = state;
-
   const back = (
     <Link className="back-link no-print" to="/sales">
       <ArrowLeft size={16} aria-hidden="true" /> All sales
@@ -250,7 +262,7 @@ export default function SaleDetailPage() {
               <button
                 type="button"
                 className="btn btn--secondary btn--sm"
-                onClick={() => window.print()}
+                onClick={() => printWhenReady()}
               >
                 <Printer size={16} aria-hidden="true" /> Print receipt
               </button>
@@ -395,6 +407,7 @@ export default function SaleDetailPage() {
         <section className="receipt-wrap" aria-label="Receipt">
           <Receipt
             businessName={business.name}
+            logoPath={business.logo_path}
             sale={sale}
             items={items}
             payments={payments}
