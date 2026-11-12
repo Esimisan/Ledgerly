@@ -1,0 +1,154 @@
+/* Business switcher (bs-) and the Add business form. Tokens only. */
+.bs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+  margin-top: var(--space-2);
+}
+
+.bs__trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.bs__trigger:hover {
+  background: var(--surface-2);
+}
+.bs__trigger:focus-visible,
+.bs__item:focus-visible {
+  outline: 0.125rem solid var(--focus-ring);
+  outline-offset: 0.125rem;
+}
+
+.bs__avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+.bs__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bs__text {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 1;
+  min-width: 0;
+  line-height: 1.25;
+}
+.bs__name {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+.bs__sub {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.bs__chevron {
+  flex: none;
+  color: var(--text-muted);
+  transition: transform var(--ease);
+}
+.bs__trigger[aria-expanded="true"] .bs__chevron {
+  transform: rotate(180deg);
+}
+
+.bs__menu {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.125rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-overlay);
+}
+
+.bs__item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.5rem;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.bs__item .bs__avatar {
+  width: 2rem;
+  height: 2rem;
+}
+.bs__item:hover {
+  background: var(--surface-2);
+}
+.bs__item[aria-current="true"] {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.bs__item[aria-current="true"] .bs__sub {
+  color: inherit;
+}
+.bs__item[aria-disabled="true"] {
+  cursor: not-allowed;
+  color: var(--text-muted);
+}
+.bs__item[aria-disabled="true"]:hover {
+  background: none;
+}
+.bs__item[aria-disabled="true"] .bs__avatar {
+  opacity: 0.6;
+}
+.bs__check {
+  flex: none;
+}
+.bs__sep {
+  height: 0;
+  margin: 0.25rem 0;
+  border-top: 1px solid var(--border);
+}
+.bs__error {
+  margin: 0;
+  font-size: var(--text-xs);
+}
+
+/* Add business page */
+.bs-form {
+  max-width: 32rem;
+}
+.bs-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}

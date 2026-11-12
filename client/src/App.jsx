@@ -3,7 +3,7 @@ import ProductFormPage from "./pages/products/ProductFormPage";
 import ImportProductsPage from "./pages/products/ImportProductsPage";
 import { lazy, Suspense } from "react";
 import { Route, Routes } from "react-router-dom";
-import AppShell from "./components/layout/AppShell";
+import AppShell from "./components/layout/BusinessShell";
 import AccessGate from "./components/layout/AccessGate";
 import { FullPageLoader } from "./components/ui/Loader";
 import {
@@ -38,6 +38,7 @@ import AuditLogPage from "./pages/audit/AuditLogPage";
 import SettingsPage from "./pages/settings/SettingsPage";
 import BackupsPage from "./pages/backups/BackupsPage";
 import GuidePage from "./pages/guide/GuidePage";
+import AddBusinessPage from "./pages/businesses/AddBusinessPage";
 
 // Dev-only: not included in production builds.
 const DesignKit = import.meta.env.DEV
@@ -126,6 +127,7 @@ export default function App() {
               <Route path="analytics/reports" element={<ReportsPage />} />
             </Route>
             <Route path="guide" element={<GuidePage />} />
+            <Route path="businesses/new" element={<AddBusinessPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route element={<RequirePermission permission="staff.manage" />}>
               <Route path="settings/staff" element={<StaffPage />} />

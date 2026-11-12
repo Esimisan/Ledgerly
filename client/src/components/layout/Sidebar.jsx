@@ -3,6 +3,7 @@ import { BookOpen, ChevronDown, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useShell } from "../../context/ShellContext";
 import { MAIN_NAV, SETTINGS_NAV } from "../../config/nav";
+import BusinessSwitcher from "./BusinessSwitcher";
 
 function NavItem({ item }) {
   const { can } = useAuth();
@@ -93,6 +94,7 @@ export default function Sidebar() {
               </NavLink>
             </li>
             <NavItem item={SETTINGS_NAV} />
+            <BusinessSwitcher />
             {import.meta.env.DEV && (
               <li>
                 <NavLink to="/design-kit" className="nav__link">

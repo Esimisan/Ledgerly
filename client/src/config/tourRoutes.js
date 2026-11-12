@@ -35,4 +35,5 @@ export const TOUR_ROUTES = [
   { pattern: "/settings/staff", key: "staff" },
   { pattern: "/settings/audit-log", key: "audit-log" },
   { pattern: "/settings/backups", key: "backups" },
+  { pattern: "/businesses/new", key: "add-business" },
 ];

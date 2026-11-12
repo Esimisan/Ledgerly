@@ -4,15 +4,17 @@ const BUCKET = "product-images";
 const TTL_SECONDS = 3600;
 const cache = new Map(); // path -> { url, expires }
 
+// Called when the active business changes or the user signs out.
+export function clearProductImageCache() {
+  cache.clear();
+}
 export async function uploadProductImage(businessId, blob, ext) {
   const path = `${businessId}/${crypto.randomUUID()}.${ext}`;
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, blob, {
-      contentType: blob.type,
-      cacheControl: "3600",
-      upsert: false,
-    });
+  const { error } = await supabase.storage.from(BUCKET).upload(path, blob, {
+    contentType: blob.type,
+    cacheControl: "3600",
+    upsert: false,
+  });
   if (error) throw error;
   return path;
 }

@@ -1,5 +1,22 @@
 // First-visit tutorial text, kept as plain data (rule 11). The tutorial engine and A step with a `permission` is shown only to roles that have it.
 export const TOURS = {
+  "add-business": {
+    title: "Add another business",
+    steps: [
+      {
+        title: "A separate business",
+        text: "Each business has its own products, sales, customers, staff and settings. Nothing is shared between your businesses.",
+      },
+      {
+        title: "You are the owner",
+        text: "You become the owner of the new business and can do everything in it. Your role in your other businesses does not change.",
+      },
+      {
+        title: "Switching",
+        text: "Use the business menu at the top of the sidebar to move between your businesses. Each one opens on its Overview.",
+      },
+    ],
+  },
   overview: {
     title: "Overview",
     steps: [

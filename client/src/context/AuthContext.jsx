@@ -4,60 +4,107 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { supabase } from "../lib/supabase";
+import {
+  canSwitchTo,
+  chooseActive,
+  readRemembered,
+  writeRemembered,
+} from "../lib/activeBusiness";
+import {
+  fetchBusinessRow,
+  fetchRolePermissions,
+  listMyBusinesses,
+} from "../data/businesses";
+import { clearProductImageCache } from "../lib/productImages";
 
 const AuthContext = createContext(null);
-const ACTIVE_KEY = "ledgerly-active-business";
 const NO_MEMBERSHIPS = { userId: null, list: [] };
+const NO_ACTIVE = {
+  userId: null,
+  businessId: null,
+  business: null,
+  role: null,
+  permissions: [],
+};
 const NO_PERMISSIONS = [];
 
-const readActive = () => {
-  try {
-    return localStorage.getItem(ACTIVE_KEY);
-  } catch {
-    return null;
-  }
-};
+// Business row + permissions of ONE membership. The owner passes every check, so nothing to fetch for them.
+async function loadDetails(membership) {
+  const [biz, perms] = await Promise.all([
+    fetchBusinessRow(membership.businessId),
+    membership.role === "owner"
+      ? Promise.resolve({ data: [], error: "" })
+      : fetchRolePermissions(membership.businessId, membership.role),
+  ]);
+  const error = biz.error || perms.error;
+  if (error || !biz.data)
+    return { error: error || "Could not load this business." };
+  return { error: "", business: biz.data, permissions: perms.data };
+}
 
-// Active memberships for a user, with the business row embedded. RLS limits what comes back.
-async function fetchMemberships(userId) {
-  const { data, error } = await supabase
-    .from("business_members")
-    .select("business_id, role, status, businesses(*)")
-    .eq("user_id", userId)
-    .eq("status", "active");
-  if (error) return { list: [], error: error.message };
-  const list = (data ?? [])
-    .filter((m) => m.businesses)
-    .map((m) => ({
-      businessId: m.business_id,
-      role: m.role,
-      business: m.businesses,
-    }));
-  return { list, error: "" };
+// Memberships plus the details of the business to open (the preferred one if it is still active).
+async function loadAll(userId, preferredId) {
+  const res = await listMyBusinesses();
+  if (res.error) return { error: res.error, list: [], active: null };
+  const pick = chooseActive(res.data, preferredId);
+  if (!pick) return { error: "", list: res.data, active: null };
+  const d = await loadDetails(pick);
+  if (d.error) return { error: d.error, list: res.data, active: null };
+  return {
+    error: "",
+    list: res.data,
+    active: {
+      userId,
+      businessId: pick.businessId,
+      business: d.business,
+      role: pick.role,
+      permissions: d.permissions,
+    },
+  };
 }
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(undefined); // undefined = still resolving
   const [membershipState, setMembershipState] = useState(NO_MEMBERSHIPS);
-  const [activeId, setActiveId] = useState(readActive);
-  const [permState, setPermState] = useState({ key: null, list: [] });
+  const [activeState, setActiveState] = useState(NO_ACTIVE);
+  const [switching, setSwitching] = useState(false);
   const [loadError, setLoadError] = useState("");
+  const requestRef = useRef(0); // bumped by every load that may change the active business, and on sign-out
+  const activeIdRef = useRef(null);
+  const membershipsRef = useRef([]);
 
   const user = session?.user ?? null;
   const userId = user?.id ?? null;
 
-  // null = not loaded yet for this user (derived, so nothing is reset inside an effect)
-  const memberships =
-    userId && membershipState.userId === userId ? membershipState.list : null;
+  // Swaps memberships and the active business together, so old and new are never paired.
+  const commit = useCallback((forUser, list, active) => {
+    const nextId = active?.businessId ?? null;
+    if (activeIdRef.current !== nextId) clearProductImageCache();
+    activeIdRef.current = nextId;
+    membershipsRef.current = list;
+    setMembershipState({ userId: forUser, list });
+    setActiveState(active ?? { ...NO_ACTIVE, userId: forUser });
+    setSwitching(false);
+  }, []);
 
   // 1) Session. The listener only stores the session: no awaited Supabase calls in here.
   useEffect(() => {
     const apply = (next) => {
       setSession(next);
-      if (!next) setMembershipState(NO_MEMBERSHIPS);
+      if (!next) {
+        requestRef.current += 1; // drop anything still loading
+        activeIdRef.current = null;
+        membershipsRef.current = [];
+        clearProductImageCache();
+        setMembershipState(NO_MEMBERSHIPS);
+        setActiveState(NO_ACTIVE);
+        setSwitching(false);
+        setLoadError("");
+      }
     };
     supabase.auth.getSession().then(({ data }) => apply(data.session));
     const { data } = supabase.auth.onAuthStateChange((_event, next) =>
@@ -66,64 +113,39 @@ export function AuthProvider({ children }) {
     return () => data.subscription.unsubscribe();
   }, []);
 
-  // 2) Memberships, keyed on the user id (token refreshes don't retrigger this).
+  // 2) First load for this user: memberships, then the remembered business if still active.
   useEffect(() => {
     if (!userId) return undefined;
     let cancelled = false;
-    fetchMemberships(userId).then(({ list, error }) => {
-      if (cancelled) return;
+    requestRef.current += 1;
+    const token = requestRef.current;
+    loadAll(userId, readRemembered(userId)).then(({ error, list, active }) => {
+      if (cancelled || token !== requestRef.current) return;
       setLoadError(error);
-      setMembershipState({ userId, list });
+      commit(userId, list, active);
+      if (active) writeRemembered(userId, active.businessId);
     });
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, commit]);
 
-  // 3) Active membership: the remembered one if still valid, otherwise the first.
-  const active = useMemo(
-    () =>
-      memberships?.find((m) => m.businessId === activeId) ??
-      memberships?.[0] ??
-      null,
-    [memberships, activeId],
-  );
-  const activeBusinessId = active?.businessId ?? null;
+  // Derived, so nothing is reset inside an effect. Data of another user never counts.
+  const memberships =
+    userId && membershipState.userId === userId ? membershipState.list : null;
+  const active =
+    userId && activeState.userId === userId && activeState.businessId
+      ? activeState
+      : null;
   const activeRole = active?.role ?? null;
   const isOwnerRole = activeRole === "owner";
-  const permKey = active ? `${activeBusinessId}:${activeRole}` : null;
-
-  // 4) Permissions for that role. The owner passes every check, so nothing to fetch.
-  useEffect(() => {
-    if (!activeBusinessId || activeRole === "owner") return undefined;
-    let cancelled = false;
-    supabase
-      .from("role_permissions")
-      .select("permission")
-      .eq("business_id", activeBusinessId)
-      .eq("role", activeRole)
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) setLoadError(error.message);
-        setPermState({
-          key: permKey,
-          list: (data ?? []).map((r) => r.permission),
-        });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [activeBusinessId, activeRole, permKey]);
-
-  const permsReady = isOwnerRole || permState.key === permKey;
-  const permList = isOwnerRole ? NO_PERMISSIONS : permState.list;
+  const permList = active?.permissions ?? NO_PERMISSIONS;
 
   let status;
   if (session === undefined) status = "loading";
   else if (!session) status = "signedOut";
   else if (memberships === null) status = "loading";
   else if (!active) status = "needsBusiness";
-  else if (!permsReady) status = "loading";
   else status = "ready";
 
   const permissionSet = useMemo(() => new Set(permList), [permList]);
@@ -160,14 +182,61 @@ export function AuthProvider({ children }) {
 
   const signOut = useCallback(() => supabase.auth.signOut(), []);
 
-  const switchBusiness = useCallback((businessId) => {
-    try {
-      localStorage.setItem(ACTIVE_KEY, businessId);
-    } catch {
-      /* ignore */
-    }
-    setActiveId(businessId);
-  }, []);
+  // Loads the target business first, then swaps. Returns true when the switch happened.
+  const switchBusiness = useCallback(
+    async (businessId) => {
+      const list = membershipsRef.current;
+      if (!userId || !canSwitchTo(list, businessId)) return false;
+      if (businessId === activeIdRef.current) return true;
+      const membership = list.find((m) => m.businessId === businessId);
+      requestRef.current += 1;
+      const token = requestRef.current;
+      setSwitching(true);
+      const d = await loadDetails(membership);
+      if (token !== requestRef.current) return false; // superseded, or signed out
+      if (d.error) {
+        setSwitching(false);
+        setLoadError(d.error);
+        return false;
+      }
+      commit(userId, list, {
+        userId,
+        businessId,
+        business: d.business,
+        role: membership.role,
+        permissions: d.permissions,
+      });
+      writeRemembered(userId, businessId);
+      return true;
+    },
+    [userId, commit],
+  );
+
+  // Reloads memberships and the active business row (for example after settings change).
+  // With preferredId, that business becomes active in the same step (new business, accepted invitation).
+  // A reload that loses a race with a switch is dropped. Returns true when it was applied.
+  const refreshMemberships = useCallback(
+    async (preferredId) => {
+      if (!userId) return false;
+      const startId = activeIdRef.current;
+      const startToken = requestRef.current;
+      const {
+        error,
+        list,
+        active: next,
+      } = await loadAll(userId, preferredId ?? startId);
+      if (error) {
+        setLoadError(error);
+        return false;
+      }
+      if (startToken !== requestRef.current || activeIdRef.current !== startId)
+        return false;
+      commit(userId, list, next);
+      if (next) writeRemembered(userId, next.businessId);
+      return true;
+    },
+    [userId, commit],
+  );
 
   const createBusiness = useCallback(
     async ({ name, phone, currencyCode, currencySymbol, timezone }) => {
@@ -179,30 +248,21 @@ export function AuthProvider({ children }) {
         p_timezone: timezone,
       });
       if (error) throw error;
-      const { list } = await fetchMemberships(userId); // pick up the new owner membership
-      try {
-        localStorage.setItem(ACTIVE_KEY, data);
-      } catch {
-        /* ignore */
-      }
-      setActiveId(data);
-      setMembershipState({ userId, list });
+      await refreshMemberships(data); // the new business becomes the active one
+      if (activeIdRef.current !== data)
+        throw new Error(
+          "Your business was created, but it could not be opened. Refresh the page to continue.",
+        );
       return data;
     },
-    [userId],
+    [refreshMemberships],
   );
-
-  // Reload the memberships after the business settings change. A failed reload keeps what we have.
-  const refreshMemberships = useCallback(async () => {
-    if (!userId) return;
-    const { list, error } = await fetchMemberships(userId);
-    if (!error) setMembershipState({ userId, list });
-  }, [userId]);
 
   const value = useMemo(
     () => ({
       status,
       loadError,
+      switching,
       session,
       user,
       memberships: memberships ?? [],
@@ -221,6 +281,7 @@ export function AuthProvider({ children }) {
     [
       status,
       loadError,
+      switching,
       session,
       user,
       memberships,

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Download } from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
 import { downloadCsv, toCsv } from "../../lib/csv";
 import { collectRows } from "../../lib/exportRows";
+import { withBusinessName } from "../../lib/exportName";
 import "../../styles/reports.css";
 
 // Give it either `rows` (already loaded: an array or a function returning one) or `fetchPage(page, pageSize)` for server-paged lists. `columns` is [{ header, value(row) }].
@@ -14,6 +16,7 @@ export default function ExportButton({
   disabled = false,
   className = "btn btn--secondary",
 }) {
+  const { business } = useAuth();
   const [state, setState] = useState({
     running: false,
     done: 0,
@@ -33,6 +36,8 @@ export default function ExportButton({
 
   async function run() {
     cancelRef.current = false;
+    // The file name carries the business that is active at click time.
+    const exportName = withBusinessName(filename, business?.name);
     setState({ running: true, done: 0, total: null, message: "", error: "" });
 
     let result;
@@ -77,7 +82,7 @@ export default function ExportButton({
         error: "",
       });
     } else {
-      downloadCsv(filename, toCsv(columns, result.rows));
+      downloadCsv(exportName, toCsv(columns, result.rows));
       setState({
         running: false,
         done: 0,

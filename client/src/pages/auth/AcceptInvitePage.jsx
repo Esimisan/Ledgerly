@@ -9,7 +9,9 @@ import {
   savePendingInvite,
 } from "../../lib/invite";
 import { ROLE_LABELS } from "../../config/permissions";
-import { acceptInvitation, previewInvitation } from "../../data/staff";
+import { previewInvitation } from "../../data/staff";
+import { acceptInvite } from "../../data/businesses";
+import { writeRemembered } from "../../lib/activeBusiness";
 import "../../styles/staff.css";
 
 const NONE = { data: null, error: "" };
@@ -34,7 +36,7 @@ function Shell({ title, sub, children }) {
 }
 
 export default function AcceptInvitePage() {
-  const { status, user, signOut } = useAuth();
+  const { status, user, signOut, refreshMemberships } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const urlToken = params.get("token");
@@ -61,14 +63,22 @@ export default function AcceptInvitePage() {
   async function accept() {
     setAccepting(true);
     setError("");
-    const { error: err } = await acceptInvitation(token);
+    const { data: businessId, error: err } = await acceptInvite(token);
     if (err) {
       setAccepting(false);
       setError(err);
       return;
     }
     clearPendingInvite();
-    window.location.assign("/"); // reload so the app picks up the new membership
+    // Reload the memberships and make the joined business the active one in one step.
+    const ok = await refreshMemberships(businessId);
+    if (!ok) {
+      // Fallback: remember it for this user and reload, so the app opens it.
+      writeRemembered(user?.id, businessId);
+      window.location.assign("/");
+      return;
+    }
+    navigate("/", { replace: true });
   }
 
   function dismiss() {
