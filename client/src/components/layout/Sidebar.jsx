@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useShell } from "../../context/ShellContext";
 import { MAIN_NAV, SETTINGS_NAV } from "../../config/nav";
 import BusinessSwitcher from "./BusinessSwitcher";
+import LogoMark from "../marketing/LogoMark";
 
 function NavItem({ item }) {
   const { can } = useAuth();
@@ -65,6 +66,7 @@ export default function Sidebar() {
         aria-label="Main navigation"
       >
         <div className="sidebar__top">
+          <LogoMark className="brand-mark" />
           <span className="wordmark">LEDGERLY</span>
           <button
             type="button"

@@ -77,7 +77,7 @@ export function makeProductExportFetcher(businessId) {
     }
     const from = (page - 1) * pageSize;
     const { data, count, error } = await supabase
-      .from("products")
+      .from("products_with_status")
       .select(
         "name, sku, barcode, description, unit, cost_price, selling_price, min_stock_level, category_id, supplier_id",
         { count: "exact" },

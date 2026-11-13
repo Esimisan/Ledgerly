@@ -59,15 +59,24 @@
 .sidebar__top {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: 0.5rem;
   padding-inline: 0.75rem;
 }
-.wordmark {
-  font-size: var(--text-lg);
-  font-weight: 500;
-  letter-spacing: 0.2em;
-  color: var(--text);
+.sidebar__top .sidebar__close {
+  margin-left: auto;
+  flex: none;
 }
+.sidebar__top svg,
+.sidebar__top img {
+  flex: none;
+}
+.wordmark {
+  font-size: var(--text-base);
+  letter-spacing: 0.12em;
+  white-space: nowrap;
+}
+
 .sidebar__label {
   margin-top: var(--space-4);
   padding-inline: 0.75rem;
@@ -339,5 +348,13 @@
   .main {
     margin-left: var(--sidebar-w);
     padding: var(--space-8) var(--space-8) var(--space-10);
+  }
+
+  .sidebar__top {
+    gap: 0.75rem;
+  }
+  .wordmark {
+    font-size: var(--text-lg);
+    letter-spacing: 0.2em;
   }
 }

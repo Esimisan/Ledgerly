@@ -32,7 +32,7 @@ const toForm = (p) => ({
   barcode: p.barcode ?? "",
   description: p.description ?? "",
   unit: p.unit,
-  cost_price: String(p.cost_price),
+  cost_price: p.cost_price == null ? "" : String(p.cost_price),
   selling_price: String(p.selling_price),
   min_stock_level: String(p.min_stock_level),
   category_id: p.category_id ?? "",
@@ -47,7 +47,9 @@ const UNIT_MESSAGE =
   "Letters only. The unit is the word you count in (pcs, kg, box). How many you have is set in Inventory.";
 
 // Returns { errors, fields }. `fields` holds only columns the database lets the app write.
-function validate(f) {
+// Returns { errors, fields }. `fields` holds only columns the database lets the app write.
+// withCost is false for people without finance.view: the cost is then left out, so a save never changes it.
+function validate(f, withCost) {
   const errors = {};
   const unit = f.unit.trim().replace(/\s+/g, " ");
   if (!f.name.trim()) errors.name = "Enter a product name.";
@@ -57,35 +59,34 @@ function validate(f) {
   const cost = toNumber(f.cost_price);
   const price = toNumber(f.selling_price);
   const min = toNumber(f.min_stock_level || "0");
-  if (f.cost_price === "" || !Number.isFinite(cost) || cost < 0)
+  if (withCost && (f.cost_price === "" || !Number.isFinite(cost) || cost < 0))
     errors.cost_price = "Enter a cost of 0 or more.";
   if (f.selling_price === "" || !Number.isFinite(price) || price < 0)
     errors.selling_price = "Enter a price of 0 or more.";
   if (!Number.isFinite(min) || min < 0)
     errors.min_stock_level = "Enter 0 or more.";
 
-  return {
-    errors,
-    fields: {
-      name: f.name.trim(),
-      sku: f.sku.trim() || null,
-      barcode: f.barcode.trim() || null,
-      description: f.description.trim() || null,
-      unit,
-      cost_price: Math.round(cost * 100) / 100,
-      selling_price: Math.round(price * 100) / 100,
-      min_stock_level: min,
-      category_id: f.category_id || null,
-      supplier_id: f.supplier_id || null,
-      is_active: f.is_active,
-    },
+  const fields = {
+    name: f.name.trim(),
+    sku: f.sku.trim() || null,
+    barcode: f.barcode.trim() || null,
+    description: f.description.trim() || null,
+    unit,
+    selling_price: Math.round(price * 100) / 100,
+    min_stock_level: min,
+    category_id: f.category_id || null,
+    supplier_id: f.supplier_id || null,
+    is_active: f.is_active,
   };
+  if (withCost) fields.cost_price = Math.round(cost * 100) / 100;
+  return { errors, fields };
 }
 
 function ProductForm({ productId }) {
   const isEdit = Boolean(productId);
   const navigate = useNavigate();
-  const { business, isOwner } = useAuth();
+  const { business, isOwner, can } = useAuth();
+  const canSeeCost = can("finance.view");
   const businessId = business.id;
   const symbol = business.currency_symbol ?? "₦";
   const { categories } = useCategories();
@@ -186,7 +187,7 @@ function ProductForm({ productId }) {
   async function onSubmit(e) {
     e.preventDefault();
     setFormError("");
-    const { errors: found, fields } = validate(form);
+    const { errors: found, fields } = validate(form, canSeeCost);
     setErrors(found);
     if (Object.keys(found).length) return;
 
@@ -217,6 +218,7 @@ function ProductForm({ productId }) {
   const price = toNumber(form.selling_price);
   let marginHint;
   if (
+    canSeeCost &&
     form.selling_price !== "" &&
     form.cost_price !== "" &&
     Number.isFinite(cost) &&
@@ -324,15 +326,19 @@ function ProductForm({ productId }) {
 
           <section className="card form-section">
             <h2>Pricing and units</h2>
-            <div className="form-row form-row--3">
-              <Field
-                label={`Cost price (${symbol})`}
-                inputMode="decimal"
-                value={form.cost_price}
-                onChange={set("cost_price")}
-                error={errors.cost_price}
-                hint="What you pay per unit"
-              />
+            <div
+              className={`form-row ${canSeeCost ? "form-row--3" : "form-row--2"}`}
+            >
+              {canSeeCost && (
+                <Field
+                  label={`Cost price (${symbol})`}
+                  inputMode="decimal"
+                  value={form.cost_price}
+                  onChange={set("cost_price")}
+                  error={errors.cost_price}
+                  hint="What you pay per unit"
+                />
+              )}
               <Field
                 label={`Selling price (${symbol})`}
                 inputMode="decimal"

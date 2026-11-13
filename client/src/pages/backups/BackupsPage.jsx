@@ -8,8 +8,8 @@ import { createBackup, listBackups } from "../../data/backups";
 import {
   CUSTOMER_COLUMNS,
   EXPENSE_COLUMNS,
-  PRODUCT_COLUMNS,
-  SALE_COLUMNS,
+  productColumns,
+  saleColumns,
   customersSource,
   expensesSource,
   productsSource,
@@ -35,7 +35,7 @@ function statusClass(status) {
 }
 
 export default function BackupsPage() {
-  const { business } = useAuth();
+  const { business, can } = useAuth();
   const history = useRpcQuery(() => listBackups(business.id), [business.id]);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState("");
@@ -49,8 +49,10 @@ export default function BackupsPage() {
         key: "products",
         name: "Products",
         text: "Name, SKU, category, supplier, prices, stock level and status.",
-        columns: PRODUCT_COLUMNS,
-        fetchPage: productsSource(business.id),
+        columns: productColumns(can("finance.view")),
+        fetchPage: productsSource(business.id, {
+          withCost: can("finance.view"),
+        }),
       },
       {
         key: "customers",
@@ -63,8 +65,8 @@ export default function BackupsPage() {
         key: "sales",
         name: "Sales",
         text: "Every sale with its customer, totals, payment and any void.",
-        columns: SALE_COLUMNS,
-        fetchPage: salesSource(business.id),
+        columns: saleColumns(can("finance.view")),
+        fetchPage: salesSource(business.id, { withCost: can("finance.view") }),
       },
       {
         key: "expenses",
@@ -74,7 +76,7 @@ export default function BackupsPage() {
         fetchPage: expensesSource(business.id),
       },
     ],
-    [business.id],
+    [business.id, can],
   );
 
   async function run() {

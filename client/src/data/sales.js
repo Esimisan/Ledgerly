@@ -114,7 +114,7 @@ export async function listSaleItems(businessId, saleId) {
   const { data, error } = await supabase
     .from("sale_items")
     .select(
-      "id, product_id, product_name, product_sku, quantity, unit_price, unit_cost, discount_amount, line_total, returned_quantity",
+      "id, product_id, product_name, product_sku, quantity, unit_price, discount_amount, line_total, returned_quantity",
     )
     .eq("business_id", businessId)
     .eq("sale_id", saleId)

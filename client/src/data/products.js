@@ -68,9 +68,10 @@ export async function listProducts({
   return { rows: data ?? [], total: count ?? 0, error: error?.message ?? "" };
 }
 
+// Read through the view: it returns the cost only to people with finance.view (null for everyone else).
 export function getProduct(businessId, id) {
   return supabase
-    .from("products")
+    .from("products_with_status")
     .select("*")
     .eq("business_id", businessId)
     .eq("id", id)

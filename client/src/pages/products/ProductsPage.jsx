@@ -22,6 +22,7 @@ export default function ProductsPage() {
   const businessId = business.id;
   const symbol = business.currency_symbol ?? "₦";
   const canWrite = can("products.write");
+  const canSeeCost = can("finance.view");
 
   // One-time message passed from the edit page after a delete. The history state is cleared straight away so the message doesn't come back when the page is refreshed.
   const location = useLocation();
@@ -70,15 +71,19 @@ export default function ProductsPage() {
   );
   const [catsOpen, setCatsOpen] = useState(false);
 
-  const [state, setState] = useState({
-    loading: true,
-    rows: [],
-    total: 0,
-    error: "",
-  });
+  // `key` records which request the rows belong to; the list counts as loading until it matches.
+  const loadKey = JSON.stringify([
+    businessId,
+    q,
+    cat,
+    status,
+    stock,
+    sort,
+    page,
+  ]);
+  const [raw, setRaw] = useState({ key: "", rows: [], total: 0, error: "" });
   useEffect(() => {
     let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
     listProducts({
       businessId,
       q,
@@ -88,12 +93,17 @@ export default function ProductsPage() {
       sort,
       page,
     }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
+      if (!cancelled) setRaw({ key: loadKey, ...result });
     });
     return () => {
       cancelled = true;
     };
-  }, [businessId, q, cat, status, stock, sort, page]);
+  }, [loadKey, businessId, q, cat, status, stock, sort, page]);
+  const state = {
+    ...raw,
+    loading: raw.key !== loadKey,
+    error: raw.key === loadKey ? raw.error : "",
+  };
 
   const urls = useImageUrls(state.rows.map((r) => r.image_path));
 
@@ -265,7 +275,7 @@ export default function ProductsPage() {
                   <tr>
                     <th>Product</th>
                     <th>Category</th>
-                    <th className="num">Cost</th>
+                    {canSeeCost && <th className="num">Cost</th>}
                     <th className="num">Price</th>
                     <th className="num">In stock</th>
                     <th>Status</th>
@@ -299,9 +309,11 @@ export default function ProductsPage() {
                       <td data-label="Category">
                         {catNames.get(r.category_id) ?? "—"}
                       </td>
-                      <td className="num" data-label="Cost">
-                        {formatMoney(r.cost_price, symbol)}
-                      </td>
+                      {canSeeCost && (
+                        <td className="num" data-label="Cost">
+                          {formatMoney(r.cost_price, symbol)}
+                        </td>
+                      )}
                       <td className="num" data-label="Price">
                         {formatMoney(r.selling_price, symbol)}
                       </td>
