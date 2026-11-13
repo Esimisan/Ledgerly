@@ -45,10 +45,19 @@
   min-width: 0;
 }
 .toolbar__filters--sales input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
   width: 100%;
   min-width: 0;
   max-width: 100%;
+  min-height: 2.75rem;
   box-sizing: border-box;
+  text-align: left;
+}
+.toolbar__filters--sales input[type="date"]::-webkit-date-and-time-value {
+  min-width: 0;
+  text-align: left;
 }
 @media (max-width: 26.5em) {
   .toolbar__filters--sales > :has(input[type="date"]),
