@@ -39,6 +39,24 @@
   min-height: 2.75rem;
 }
 
+/* Phones: let the filter controls shrink, and give the date fields and the
+   checkbox their own row so nothing runs into its neighbour. */
+.toolbar__filters--sales > * {
+  min-width: 0;
+}
+.toolbar__filters--sales input[type="date"] {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+@media (max-width: 26.5em) {
+  .toolbar__filters--sales > :has(input[type="date"]),
+  .toolbar__filters--sales > .filter-check {
+    grid-column: 1 / -1;
+  }
+}
+
 .sale-cell {
   min-width: 0;
   text-align: left;
