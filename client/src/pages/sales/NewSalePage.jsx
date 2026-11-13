@@ -20,6 +20,8 @@ import {
   toCents,
 } from "../../lib/saleInput";
 
+const EMPTY_QUOTE = { key: null, data: null, error: "" };
+
 export default function NewSalePage() {
   const { business, can } = useAuth();
   const businessId = business.id;
@@ -65,20 +67,14 @@ export default function NewSalePage() {
     refresh,
   ]);
 
-  const [quoteState, setQuoteState] = useState({
-    key: null,
-    data: null,
-    error: "",
-    loading: false,
-  });
+  const [quoteState, setQuoteState] = useState(EMPTY_QUOTE);
+  // Not priceable: forget the old quote. This replaces the reset the effect used
+  // to do (React allows a guarded state update during render).
+  if (!canQuote && quoteState !== EMPTY_QUOTE) setQuoteState(EMPTY_QUOTE);
 
   useEffect(() => {
-    if (!canQuote) {
-      setQuoteState({ key: null, data: null, error: "", loading: false });
-      return;
-    }
+    if (!canQuote) return undefined;
     let cancelled = false;
-    setQuoteState((s) => ({ ...s, loading: true }));
     const timer = setTimeout(async () => {
       const { data, error } = await quoteSale({
         businessId,
@@ -90,13 +86,8 @@ export default function NewSalePage() {
       if (cancelled) return;
       setQuoteState(
         error
-          ? {
-              key: quoteKey,
-              data: null,
-              error: saleError(error),
-              loading: false,
-            }
-          : { key: quoteKey, data, error: "", loading: false },
+          ? { key: quoteKey, data: null, error: saleError(error) }
+          : { key: quoteKey, data, error: "" },
       );
     }, 350);
     return () => {
@@ -108,7 +99,7 @@ export default function NewSalePage() {
 
   const quote = quoteState.data;
   const current = quoteState.key === quoteKey;
-  const settled = current && !quoteState.loading;
+  const settled = current; // loading is simply "the quote on screen is not for this key yet"
   const quoteLines = Object.fromEntries(
     (quote?.lines ?? []).map((l) => [l.product_id, l]),
   );

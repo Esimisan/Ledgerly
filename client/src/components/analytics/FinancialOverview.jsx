@@ -1,5 +1,6 @@
 import ChangeText from "./ChangeText";
-import MetricStrip, { buildMetrics } from "./MetricStrip";
+import MetricStrip from "./MetricStrip";
+import { buildMetrics } from "../../lib/buildMetrics";
 import { compareRangeText, monthLong, plural } from "../../lib/analytics";
 import { formatMoney } from "../../lib/format";
 

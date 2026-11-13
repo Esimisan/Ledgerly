@@ -1,10 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Search } from "lucide-react";
 import BalanceText from "../customers/BalanceText";
 import { useDebounced } from "../../hooks/useDebounced";
+import { useListQuery } from "../../hooks/useListQuery";
 import { searchCustomers } from "../../data/customers";
 
-// customer = null means a walk-in sale. onChange receives a customer row or null.
+const EMPTY_SEARCH = { rows: [], error: "" };
+const searchFor = ({ businessId, text }) =>
+  searchCustomers({ businessId, q: text });
+
+// customer = null means a wa
+// lk-in sale. onChange receives a customer row or null.
 export default function CustomerPicker({
   businessId,
   symbol,
@@ -13,23 +19,11 @@ export default function CustomerPicker({
 }) {
   const [term, setTerm] = useState("");
   const debounced = useDebounced(term, 250);
-  const [state, setState] = useState({ loading: false, rows: [], error: "" });
 
-  useEffect(() => {
-    const text = debounced.trim();
-    if (!text) {
-      setState({ loading: false, rows: [], error: "" });
-      return;
-    }
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    searchCustomers({ businessId, q: text }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, debounced]);
+  const text = debounced.trim();
+  const state = useListQuery(searchFor, { businessId, text }, EMPTY_SEARCH, {
+    enabled: Boolean(text),
+  });
 
   if (customer) {
     const pct = Number(customer.discount_percent);

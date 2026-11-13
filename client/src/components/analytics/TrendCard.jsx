@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import InsightsPanel from "./InsightsCard";
 import SalesChart from "./SalesChart";
 import { getTrendSeries } from "../../data/analytics";
@@ -35,21 +35,16 @@ export default function TrendCard({ businessId, from, to, symbol, kpis }) {
     [businessId, from, to, gran],
   );
 
-  // The chart reads `revenue` as "the value", so the chosen metric is mapped into it.
-  const points = useMemo(
-    () =>
-      (data ?? []).map((r) => ({
-        start: r.bucket_start,
-        end: r.bucket_end,
-        revenue: Number(r[current.key] ?? 0),
-        orders: Number(r.orders),
-      })),
-    [data, current.key],
-  );
+  const metricKey = current.key;
+  const points = (data ?? []).map((r) => ({
+    start: r.bucket_start,
+    end: r.bucket_end,
+    revenue: Number(r[metricKey] ?? 0),
+    orders: Number(r.orders),
+  }));
   const hasData = points.some(
-    (p) => p.revenue !== 0 || (current.key === "revenue" && p.orders > 0),
+    (p) => p.revenue !== 0 || (metricKey === "revenue" && p.orders > 0),
   );
-
   return (
     <section
       className="card an-trend-wrap"

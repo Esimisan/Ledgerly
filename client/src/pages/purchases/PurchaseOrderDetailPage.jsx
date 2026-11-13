@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -14,6 +14,7 @@ import { PoStatusBadge } from "../../components/purchases/PoBadges";
 import PoSheet from "../../components/purchases/PoSheet";
 import ReceivePoModal from "../../components/purchases/ReceivePoModal";
 import { useAuth } from "../../context/AuthContext";
+import { useListQuery } from "../../hooks/useListQuery";
 import { formatExpenseDate } from "../../data/expenses";
 import {
   getPurchaseOrder,
@@ -27,6 +28,36 @@ import { formatDateTime, formatMoney, formatQty } from "../../lib/format";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const LIST = "/inventory/purchase-orders";
+
+const INITIAL_DETAIL = {
+  po: null,
+  items: [],
+  receipts: [],
+  receiptLines: [],
+  error: "",
+};
+
+async function fetchPoDetail({ businessId, poId }) {
+  const { data: po, error } = await getPurchaseOrder(businessId, poId);
+  if (error || !po) {
+    return { ...INITIAL_DETAIL, error: error?.message ?? "" };
+  }
+  const [items, receipts] = await Promise.all([
+    listPoItems(businessId, poId),
+    listPoReceipts(businessId, poId),
+  ]);
+  const lines = await listReceiptLines(
+    businessId,
+    receipts.rows.map((r) => r.id),
+  );
+  return {
+    po,
+    items: items.rows,
+    receipts: receipts.rows,
+    receiptLines: lines.rows,
+    error: items.error || receipts.error || lines.error,
+  };
+}
 
 export default function PurchaseOrderDetailPage() {
   const { poId } = useParams();
@@ -42,58 +73,13 @@ export default function PurchaseOrderDetailPage() {
   const [notice, setNotice] = useState(location.state?.notice ?? "");
   const [actionError, setActionError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [reload, setReload] = useState(0);
 
-  const [state, setState] = useState({
-    loading: true,
-    po: null,
-    items: [],
-    receipts: [],
-    receiptLines: [],
-    error: "",
-  });
-
-  useEffect(() => {
-    if (!validId) {
-      setState((s) => ({ ...s, loading: false, po: null, error: "" }));
-      return;
-    }
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    (async () => {
-      const { data: po, error } = await getPurchaseOrder(businessId, poId);
-      if (cancelled) return;
-      if (error || !po) {
-        setState((s) => ({
-          ...s,
-          loading: false,
-          po: null,
-          error: error?.message ?? "",
-        }));
-        return;
-      }
-      const [items, receipts] = await Promise.all([
-        listPoItems(businessId, poId),
-        listPoReceipts(businessId, poId),
-      ]);
-      const lines = await listReceiptLines(
-        businessId,
-        receipts.rows.map((r) => r.id),
-      );
-      if (cancelled) return;
-      setState({
-        loading: false,
-        po,
-        items: items.rows,
-        receipts: receipts.rows,
-        receiptLines: lines.rows,
-        error: items.error || receipts.error || lines.error,
-      });
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, poId, validId, reload]);
+  const state = useListQuery(
+    fetchPoDetail,
+    { businessId, poId },
+    INITIAL_DETAIL,
+    { enabled: validId },
+  );
 
   const { po, items, receipts, receiptLines } = state;
 
@@ -160,7 +146,7 @@ export default function PurchaseOrderDetailPage() {
     setNotice(
       `${po.po_label} was placed. You can receive stock against it when it arrives.`,
     );
-    setReload((n) => n + 1);
+    state.reload();
   }
 
   function afterReceive(result) {
@@ -176,7 +162,7 @@ export default function PurchaseOrderDetailPage() {
       );
     setReceiving(false);
     setNotice(parts.join(" "));
-    setReload((n) => n + 1);
+    state.reload();
   }
 
   function afterCancel(result) {
@@ -185,7 +171,7 @@ export default function PurchaseOrderDetailPage() {
       parts.push("The stock that already arrived stays in your inventory.");
     setCancelling(false);
     setNotice(parts.join(" "));
-    setReload((n) => n + 1);
+    state.reload();
   }
 
   return (

@@ -1,33 +1,26 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Search, Trash2 } from "lucide-react";
 import ProductThumb from "../products/ProductThumb";
 import { useDebounced } from "../../hooks/useDebounced";
 import { useImageUrls } from "../../hooks/useImageUrls";
+import { useListQuery } from "../../hooks/useListQuery";
 import { searchPoProducts } from "../../data/purchaseOrders";
 import { formatMoney, formatQty } from "../../lib/format";
 import { lineCents, parseCost, parseQty } from "../../lib/saleInput";
+
+const EMPTY_SEARCH = { rows: [], error: "" };
+const searchFor = ({ businessId, text }) =>
+  searchPoProducts({ businessId, q: text });
 
 // lines: [{ productId, name, sku, unit, imagePath, currentCost, quantity, unitCost }]
 export default function PoLinesEditor({ businessId, symbol, lines, onChange }) {
   const [term, setTerm] = useState("");
   const debounced = useDebounced(term, 250);
-  const [state, setState] = useState({ loading: false, rows: [], error: "" });
 
-  useEffect(() => {
-    const text = debounced.trim();
-    if (!text) {
-      setState({ loading: false, rows: [], error: "" });
-      return;
-    }
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    searchPoProducts({ businessId, q: text }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, debounced]);
+  const text = debounced.trim();
+  const state = useListQuery(searchFor, { businessId, text }, EMPTY_SEARCH, {
+    enabled: Boolean(text),
+  });
 
   const urls = useImageUrls([
     ...state.rows.map((r) => r.image_path),

@@ -38,9 +38,10 @@ export default function SalesChart({
 }) {
   const wrapRef = useRef(null);
   const width = useWidth(wrapRef);
-  const [active, setActive] = useState(null);
-
-  useEffect(() => setActive(null), [points]);
+  // The highlighted point is forgotten whenever `points` is a new array.
+  const [activeState, setActiveState] = useState({ points, value: null });
+  const active = activeState.points === points ? activeState.value : null;
+  const setActive = (value) => setActiveState({ points, value });
 
   const small = width < 480;
   const height = small ? 220 : 280;

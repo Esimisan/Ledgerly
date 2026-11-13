@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Package } from "lucide-react";
 import ChangeText from "./ChangeText";
 import Field from "../ui/Field";
@@ -83,7 +83,6 @@ export default function ProductInsights({
     performance: "best_units",
     stock: "low",
   });
-  const [page, setPage] = useState(1);
 
   const stock = view === "stock";
   const options = stock
@@ -91,7 +90,12 @@ export default function ProductInsights({
     : PERFORMANCE.filter((o) => !o.finance || canFinance);
   const current = options.find((o) => o.key === choice[view]) ?? options[0];
 
-  useEffect(() => setPage(1), [from, to, view, current.key]);
+  // The page returns to 1 whenever the month, the view or the analysis changes.
+  const resetKey = JSON.stringify([from, to, view, current.key]);
+  const [pageState, setPageState] = useState({ resetKey, page: 1 });
+  if (pageState.resetKey !== resetKey) setPageState({ resetKey, page: 1 });
+  const page = pageState.resetKey === resetKey ? pageState.page : 1;
+  const setPage = (p) => setPageState({ resetKey, page: p });
 
   const offset = (page - 1) * PAGE_SIZE;
   const { data, loading, error, reload } = useAnalyticsQuery(

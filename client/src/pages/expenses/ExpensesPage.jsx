@@ -13,6 +13,7 @@ import VoidExpenseModal from "../../components/expenses/VoidExpenseModal";
 import { useAuth } from "../../context/AuthContext";
 import { usePeriod } from "../../context/PeriodContext";
 import { useDebounced } from "../../hooks/useDebounced";
+import { useListQuery } from "../../hooks/useListQuery";
 import { listCategoryFilterOptions } from "../../data/expenseCategories";
 import {
   EXPENSE_SORTS,
@@ -54,6 +55,9 @@ function monthLabel(key) {
   });
 }
 
+const INITIAL_LIST = { rows: [], total: 0, error: "" };
+const INITIAL_TOTALS = { rows: [], grand: 0, count: 0, error: "" };
+
 export default function ExpensesPage() {
   const { business, can } = useAuth();
   const businessId = business.id;
@@ -92,7 +96,6 @@ export default function ExpensesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch]);
 
-  const [reload, setReload] = useState(0);
   // A modal is only mounted while open, so its form always starts fresh.
   const [editing, setEditing] = useState(null); // { expense: row | null } while open
   const [voiding, setVoiding] = useState(null); // expense row while open
@@ -113,31 +116,11 @@ export default function ExpensesPage() {
   }, [businessId]);
 
   // The list.
-  const [state, setState] = useState({
-    loading: true,
-    rows: [],
-    total: 0,
-    error: "",
-  });
-  useEffect(() => {
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    listExpenses({
-      businessId,
-      q,
-      categoryId: category,
-      status,
-      from,
-      to,
-      sort,
-      page,
-    }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, q, category, status, from, to, sort, page, reload]);
+  const state = useListQuery(
+    listExpenses,
+    { businessId, q, categoryId: category, status, from, to, sort, page },
+    INITIAL_LIST,
+  );
 
   // The summary follows the From/To dates when either is set, otherwise the month picker.
   const customRange = Boolean(from || to);
@@ -167,27 +150,11 @@ export default function ExpensesPage() {
     <MonthPicker />
   );
 
-  const [totals, setTotals] = useState({
-    loading: true,
-    rows: [],
-    grand: 0,
-    count: 0,
-    error: "",
-  });
-  useEffect(() => {
-    let cancelled = false;
-    setTotals((s) => ({ ...s, loading: true, error: "" }));
-    expenseTotals({
-      businessId,
-      from: summaryFrom,
-      to: summaryTo,
-    }).then((result) => {
-      if (!cancelled) setTotals({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, summaryFrom, summaryTo, reload]);
+  const totals = useListQuery(
+    expenseTotals,
+    { businessId, from: summaryFrom, to: summaryTo },
+    INITIAL_TOTALS,
+  );
 
   const filtered = Boolean(q || category || status !== "active" || from || to);
   const badRange = Boolean(from && to && from > to);
@@ -233,7 +200,8 @@ export default function ExpensesPage() {
     setVoiding(null);
     setActionError("");
     setNotice(message);
-    setReload((n) => n + 1);
+    state.reload();
+    totals.reload();
   }
 
   // Open the window during the click (so pop-up blockers allow it), then point it at

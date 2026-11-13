@@ -8,6 +8,7 @@ import ExportButton from "../../components/reports/ExportButton";
 import { MovementTypeBadge } from "../../components/inventory/Badges";
 import { useAuth } from "../../context/AuthContext";
 import { useDebounced } from "../../hooks/useDebounced";
+import { useListQuery } from "../../hooks/useListQuery";
 import {
   getProductName,
   isDateParam,
@@ -31,7 +32,7 @@ const CHANGE_KEYS = [
 ];
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
+const INITIAL_LIST = { rows: [], total: 0, error: "" };
 export default function MovementsTab() {
   const { business, can } = useAuth();
   const canExport = can("reports.view");
@@ -80,31 +81,11 @@ export default function MovementsTab() {
     };
   }, [businessId, productId]);
 
-  const [state, setState] = useState({
-    loading: true,
-    rows: [],
-    total: 0,
-    error: "",
-  });
-  useEffect(() => {
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    listMovements({
-      businessId,
-      productId,
-      q,
-      type,
-      from,
-      to,
-      sort,
-      page,
-    }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, productId, q, type, from, to, sort, page]);
+  const state = useListQuery(
+    listMovements,
+    { businessId, productId, q, type, from, to, sort, page },
+    INITIAL_LIST,
+  );
 
   const changeSort = (key) =>
     update({ sort: !key || key === "newest" ? "" : key });

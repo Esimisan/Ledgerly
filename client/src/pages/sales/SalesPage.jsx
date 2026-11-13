@@ -12,6 +12,7 @@ import {
 } from "../../components/sales/SaleBadges";
 import { useAuth } from "../../context/AuthContext";
 import { useDebounced } from "../../hooks/useDebounced";
+import { useListQuery } from "../../hooks/useListQuery";
 import { getCustomer } from "../../data/customers";
 import { SALE_SORTS, listSales } from "../../data/sales";
 import { formatDateTime, formatMoney } from "../../lib/format";
@@ -19,6 +20,7 @@ import { csvDateTime, csvMoney } from "../../lib/csv";
 import { todayInLagos } from "../../lib/analytics";
 
 const STATUSES = ["all", "completed", "voided"];
+const INITIAL_LIST = { rows: [], total: 0, error: "" };
 
 // Which sort keys each sortable column heading sets (same keys as the "Sort by" menu).
 const DATE_KEYS = [
@@ -88,16 +90,9 @@ export default function SalesPage() {
     };
   }, [businessId, customer]);
 
-  const [state, setState] = useState({
-    loading: true,
-    rows: [],
-    total: 0,
-    error: "",
-  });
-  useEffect(() => {
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    listSales({
+  const state = useListQuery(
+    listSales,
+    {
       businessId,
       q,
       status,
@@ -107,13 +102,9 @@ export default function SalesPage() {
       unpaid,
       sort,
       page,
-    }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, q, status, from, to, customer, unpaid, sort, page]);
+    },
+    INITIAL_LIST,
+  );
 
   const filtered = Boolean(
     q || status !== "all" || customer || from || to || unpaid,

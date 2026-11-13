@@ -10,6 +10,7 @@ import CustomerModal from "../../components/customers/CustomerModal";
 import DeactivateCustomerModal from "../../components/customers/DeactivateCustomerModal";
 import { useAuth } from "../../context/AuthContext";
 import { useDebounced } from "../../hooks/useDebounced";
+import { useListQuery } from "../../hooks/useListQuery";
 import {
   CUSTOMER_SORTS,
   customerError,
@@ -28,6 +29,7 @@ const BALANCE_KEYS = [{ key: "balance_desc", dir: "desc" }];
 const SPENT_KEYS = [{ key: "spent_desc", dir: "desc" }];
 const LAST_KEYS = [{ key: "last_purchase", dir: "desc" }];
 const BALANCES = ["owes", "credit"];
+const INITIAL_LIST = { rows: [], total: 0, error: "" };
 
 export default function CustomersPage() {
   const { business, can } = useAuth();
@@ -71,26 +73,12 @@ export default function CustomersPage() {
   const [notice, setNotice] = useState("");
   const [actionError, setActionError] = useState("");
   const [busyId, setBusyId] = useState(null);
-  const [reload, setReload] = useState(0);
 
-  const [state, setState] = useState({
-    loading: true,
-    rows: [],
-    total: 0,
-    error: "",
-  });
-  useEffect(() => {
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    listCustomers({ businessId, q, status, balance, sort, page }).then(
-      (result) => {
-        if (!cancelled) setState({ loading: false, ...result });
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, q, status, balance, sort, page, reload]);
+  const state = useListQuery(
+    listCustomers,
+    { businessId, q, status, balance, sort, page },
+    INITIAL_LIST,
+  );
 
   const filtered = Boolean(q || status !== "active" || balance);
 
@@ -134,7 +122,7 @@ export default function CustomersPage() {
     setEditing(null);
     setDeactivating(null);
     setNotice(message);
-    setReload((n) => n + 1);
+    state.reload();
   }
 
   async function reactivate(c) {

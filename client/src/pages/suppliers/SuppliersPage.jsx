@@ -7,6 +7,7 @@ import SupplierModal from "../../components/suppliers/SupplierModal";
 import DeactivateSupplierModal from "../../components/suppliers/DeactivateSupplierModal";
 import { useAuth } from "../../context/AuthContext";
 import { useDebounced } from "../../hooks/useDebounced";
+import { useListQuery } from "../../hooks/useListQuery";
 import { PAGE_SIZE } from "../../data/products";
 import {
   listSuppliers,
@@ -15,6 +16,7 @@ import {
 } from "../../data/suppliers";
 
 const STATUSES = ["active", "inactive", "all"];
+const INITIAL_LIST = { rows: [], total: 0, error: "" };
 
 export default function SuppliersPage() {
   const { business, can } = useAuth();
@@ -52,24 +54,12 @@ export default function SuppliersPage() {
   const [notice, setNotice] = useState("");
   const [actionError, setActionError] = useState("");
   const [busyId, setBusyId] = useState(null);
-  const [reload, setReload] = useState(0);
 
-  const [state, setState] = useState({
-    loading: true,
-    rows: [],
-    total: 0,
-    error: "",
-  });
-  useEffect(() => {
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    listSuppliers({ businessId, q, status, page }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, q, status, page, reload]);
+  const state = useListQuery(
+    listSuppliers,
+    { businessId, q, status, page },
+    INITIAL_LIST,
+  );
 
   const pages = Math.max(1, Math.ceil(state.total / PAGE_SIZE));
   const first = state.total ? (page - 1) * PAGE_SIZE + 1 : 0;
@@ -85,7 +75,7 @@ export default function SuppliersPage() {
     setEditing(null);
     setDeactivating(null);
     setNotice(message);
-    setReload((n) => n + 1);
+    state.reload();
   }
 
   async function reactivate(s) {

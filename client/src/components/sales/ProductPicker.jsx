@@ -6,29 +6,37 @@ import { useImageUrls } from "../../hooks/useImageUrls";
 import { searchSellableProducts } from "../../data/sales";
 import { formatMoney, formatQty } from "../../lib/format";
 
+const EMPTY_RESULT = { key: null, rows: [], error: "" };
+
 // onAdd(product) puts one unit of the product in the cart.
 export default function ProductPicker({ businessId, symbol, onAdd }) {
   const [term, setTerm] = useState("");
   const debounced = useDebounced(term, 250);
-  const [state, setState] = useState({ loading: false, rows: [], error: "" });
+
+  const debouncedText = debounced.trim();
+  const queryKey = `${businessId}\n${debouncedText}`;
+  const [result, setResult] = useState(EMPTY_RESULT);
   const inputRef = useRef(null);
 
   useEffect(() => {
-    const text = debounced.trim();
-    if (!text) {
-      setState({ loading: false, rows: [], error: "" });
-      return;
-    }
+    if (!debouncedText) return undefined;
     let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    searchSellableProducts({ businessId, q: text }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
+    searchSellableProducts({ businessId, q: debouncedText }).then((r) => {
+      if (!cancelled)
+        setResult({ key: queryKey, rows: r.rows, error: r.error });
     });
     return () => {
       cancelled = true;
     };
-  }, [businessId, debounced]);
+  }, [businessId, debouncedText, queryKey]);
 
+  // Same shape the JSX always read: old rows stay while loading, error clears.
+  const fresh = result.key === queryKey;
+  const state = {
+    loading: Boolean(debouncedText) && !fresh,
+    rows: debouncedText || fresh ? result.rows : [],
+    error: fresh ? result.error : "",
+  };
   const urls = useImageUrls(state.rows.map((r) => r.image_path));
   const showing = term.trim() !== "";
 
@@ -50,7 +58,7 @@ export default function ProductPicker({ businessId, symbol, onAdd }) {
       q: text,
     });
     if (error) {
-      setState({ loading: false, rows: [], error });
+      setResult({ key: queryKey, rows: [], error });
       return;
     }
     const lower = text.toLowerCase();
@@ -59,7 +67,7 @@ export default function ProductPicker({ businessId, symbol, onAdd }) {
     );
     const pick = exact ?? (rows.length === 1 ? rows[0] : null);
     if (pick && Number(pick.quantity_on_hand) > 0) add(pick);
-    else setState({ loading: false, rows, error: "" });
+    else setResult({ key: queryKey, rows, error: "" });
   }
 
   return (

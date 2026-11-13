@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Plus } from "lucide-react";
 import PageHeader from "../../components/layout/PageHeader";
@@ -6,12 +6,15 @@ import Field from "../../components/ui/Field";
 import Pagination from "../../components/ui/Pagination";
 import CategoryModal from "../../components/expenses/CategoryModal";
 import { useAuth } from "../../context/AuthContext";
+import { useListQuery } from "../../hooks/useListQuery";
 import {
   CATEGORY_STATUSES,
   categoryError,
   listExpenseCategories,
   setCategoryActive,
 } from "../../data/expenseCategories";
+
+const INITIAL_LIST = { rows: [], total: 0, error: "" };
 
 export default function ExpenseCategoriesPage() {
   const { business, can } = useAuth();
@@ -39,24 +42,11 @@ export default function ExpenseCategoriesPage() {
   const [notice, setNotice] = useState("");
   const [actionError, setActionError] = useState("");
   const [busyId, setBusyId] = useState(null);
-  const [reload, setReload] = useState(0);
-
-  const [state, setState] = useState({
-    loading: true,
-    rows: [],
-    total: 0,
-    error: "",
-  });
-  useEffect(() => {
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    listExpenseCategories({ businessId, status, page }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, status, page, reload]);
+  const state = useListQuery(
+    listExpenseCategories,
+    { businessId, status, page },
+    INITIAL_LIST,
+  );
 
   const filtered = status !== "active";
 
@@ -64,7 +54,7 @@ export default function ExpenseCategoriesPage() {
     setEditing(null);
     setActionError("");
     setNotice(message);
-    setReload((n) => n + 1);
+    state.reload();
   }
 
   async function toggleActive(category, makeActive) {
@@ -86,7 +76,7 @@ export default function ExpenseCategoriesPage() {
         ? `${category.name} was reactivated.`
         : `${category.name} was deactivated. Past expenses keep it, and it no longer appears when adding new ones.`,
     );
-    setReload((n) => n + 1);
+    state.reload();
   }
 
   return (

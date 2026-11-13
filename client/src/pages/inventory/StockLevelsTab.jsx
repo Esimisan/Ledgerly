@@ -10,11 +10,13 @@ import { useAuth } from "../../context/AuthContext";
 import { useCategories } from "../../hooks/useCategories";
 import { useDebounced } from "../../hooks/useDebounced";
 import { useImageUrls } from "../../hooks/useImageUrls";
+import { useListQuery } from "../../hooks/useListQuery";
 import { listProducts, SORTS } from "../../data/products";
 import { getStockSummary } from "../../data/stock";
 import { formatMoney, formatQty } from "../../lib/format";
 
 const SORT_KEYS = ["name", "stock_asc", "stock_desc"];
+const INITIAL_LIST = { rows: [], total: 0, error: "" };
 
 export default function StockLevelsTab() {
   const { business, can } = useAuth();
@@ -59,30 +61,11 @@ export default function StockLevelsTab() {
   const [reload, setReload] = useState(0);
   const [summary, setSummary] = useState({ all: null, low: null, out: null });
 
-  const [state, setState] = useState({
-    loading: true,
-    rows: [],
-    total: 0,
-    error: "",
-  });
-  useEffect(() => {
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    listProducts({
-      businessId,
-      q,
-      categoryId: cat,
-      status,
-      stock,
-      sort,
-      page,
-    }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, q, cat, status, stock, sort, page, reload]);
+  const state = useListQuery(
+    listProducts,
+    { businessId, q, categoryId: cat, status, stock, sort, page },
+    INITIAL_LIST,
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -110,6 +93,7 @@ export default function StockLevelsTab() {
     setActing(null);
     setNotice(message);
     setReload((n) => n + 1);
+    state.reload();
   }
 
   return (

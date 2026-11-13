@@ -7,6 +7,7 @@ import Pagination from "../../components/ui/Pagination";
 import DiscountModal from "../../components/discounts/DiscountModal";
 import { useAuth } from "../../context/AuthContext";
 import { useDebounced } from "../../hooks/useDebounced";
+import { useListQuery } from "../../hooks/useListQuery";
 import {
   DISCOUNT_SORTS,
   discountError,
@@ -17,6 +18,7 @@ import {
 import { formatDate, formatMoney } from "../../lib/format";
 
 const STATUSES = ["active", "off", "all"];
+const INITIAL_LIST = { rows: [], total: 0, error: "" };
 
 function validText(d) {
   if (d.starts_at && d.ends_at)
@@ -62,24 +64,12 @@ export default function DiscountsPage() {
   const [notice, setNotice] = useState("");
   const [actionError, setActionError] = useState("");
   const [busyId, setBusyId] = useState(null);
-  const [reload, setReload] = useState(0);
 
-  const [state, setState] = useState({
-    loading: true,
-    rows: [],
-    total: 0,
-    error: "",
-  });
-  useEffect(() => {
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    listDiscounts({ businessId, q, status, sort, page }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, q, status, sort, page, reload]);
+  const state = useListQuery(
+    listDiscounts,
+    { businessId, q, status, sort, page },
+    INITIAL_LIST,
+  );
 
   const filtered = Boolean(q || status !== "active");
 
@@ -91,7 +81,7 @@ export default function DiscountsPage() {
   function afterChange(message) {
     setEditing(null);
     setNotice(message);
-    setReload((n) => n + 1);
+    state.reload();
   }
 
   async function toggle(d, makeActive) {

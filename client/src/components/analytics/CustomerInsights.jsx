@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Users } from "lucide-react";
 import MetricStrip from "./MetricStrip";
@@ -59,9 +59,14 @@ const note = (text) => <span className="an-change">{text}</span>;
 
 export default function CustomerInsights({ businessId, from, to, symbol }) {
   const [key, setKey] = useState("top_spending");
-  const [page, setPage] = useState(1);
   const current = ANALYSES.find((a) => a.key === key);
-  useEffect(() => setPage(1), [from, to, key]);
+
+  // The page returns to 1 whenever the month or the analysis changes.
+  const resetKey = JSON.stringify([from, to, key]);
+  const [pageState, setPageState] = useState({ resetKey, page: 1 });
+  if (pageState.resetKey !== resetKey) setPageState({ resetKey, page: 1 });
+  const page = pageState.resetKey === resetKey ? pageState.page : 1;
+  const setPage = (p) => setPageState({ resetKey, page: p });
   const offset = (page - 1) * PAGE_SIZE;
 
   const snapshot = useAnalyticsQuery(

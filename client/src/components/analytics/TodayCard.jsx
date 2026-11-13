@@ -1,5 +1,6 @@
 import { useMemo } from "react";
-import MetricStrip, { buildMetrics } from "./MetricStrip";
+import MetricStrip from "./MetricStrip";
+import { buildMetrics } from "../../lib/buildMetrics";
 import { getKpis } from "../../data/analytics";
 import {
   refreshedText,

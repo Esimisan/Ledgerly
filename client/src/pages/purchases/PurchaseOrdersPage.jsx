@@ -7,6 +7,7 @@ import Pagination from "../../components/ui/Pagination";
 import { PoStatusBadge } from "../../components/purchases/PoBadges";
 import { useAuth } from "../../context/AuthContext";
 import { useDebounced } from "../../hooks/useDebounced";
+import { useListQuery } from "../../hooks/useListQuery";
 import { formatExpenseDate, todayLocal } from "../../data/expenses";
 import { isDateParam } from "../../data/stock";
 import {
@@ -19,6 +20,7 @@ import { formatMoney, formatQty } from "../../lib/format";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const STATUS_KEYS = PO_STATUS_FILTERS.map(([key]) => key);
+const INITIAL_LIST = { rows: [], total: 0, error: "" };
 
 export default function PurchaseOrdersPage() {
   const { business, can } = useAuth();
@@ -67,31 +69,11 @@ export default function PurchaseOrdersPage() {
     };
   }, [businessId]);
 
-  const [state, setState] = useState({
-    loading: true,
-    rows: [],
-    total: 0,
-    error: "",
-  });
-  useEffect(() => {
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    listPurchaseOrders({
-      businessId,
-      q,
-      status,
-      supplierId: supplier,
-      from,
-      to,
-      sort,
-      page,
-    }).then((result) => {
-      if (!cancelled) setState({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, q, status, supplier, from, to, sort, page]);
+  const state = useListQuery(
+    listPurchaseOrders,
+    { businessId, q, status, supplierId: supplier, from, to, sort, page },
+    INITIAL_LIST,
+  );
 
   const filtered = Boolean(q || status !== "all" || supplier || from || to);
   const badRange = Boolean(from && to && from > to);

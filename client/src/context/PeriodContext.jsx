@@ -3,6 +3,7 @@ import { createContext, useContext, useMemo, useState } from "react";
 const pad = (n) => String(n).padStart(2, "0");
 const keyOf = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function monthOptions(count = 12) {
   const now = new Date();
   return Array.from({ length: count }, (_, i) => {
@@ -36,4 +37,5 @@ export function PeriodProvider({ children }) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const usePeriod = () => useContext(PeriodContext);

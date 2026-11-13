@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Banknote, Clock, ShoppingBag, Wallet } from "lucide-react";
 import PageHeader from "../../components/layout/PageHeader";
@@ -9,6 +9,7 @@ import DeactivateCustomerModal from "../../components/customers/DeactivateCustom
 import RecordPaymentModal from "../../components/customers/RecordPaymentModal";
 import AdjustBalanceModal from "../../components/customers/AdjustBalanceModal";
 import { useAuth } from "../../context/AuthContext";
+import { useListQuery } from "../../hooks/useListQuery";
 import {
   customerError,
   getCustomer,
@@ -30,6 +31,13 @@ const TONE = {
 const methodLabel = (m) =>
   m ? m.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase()) : "—";
 
+const INITIAL_CUSTOMER = { customer: null, error: "" };
+const INITIAL_LEDGER = { rows: [], total: 0, error: "" };
+
+async function fetchCustomer({ businessId, customerId }) {
+  const { data, error } = await getCustomer(businessId, customerId);
+  return { customer: data ?? null, error: error?.message ?? "" };
+}
 export default function CustomerProfilePage() {
   const { customerId } = useParams();
   const { business, can } = useAuth();
@@ -50,52 +58,22 @@ export default function CustomerProfilePage() {
   const [notice, setNotice] = useState("");
   const [actionError, setActionError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [reload, setReload] = useState(0);
 
-  // The customer row.
-  const [state, setState] = useState({
-    loading: true,
-    customer: null,
-    error: "",
-  });
-  useEffect(() => {
-    if (!validId) {
-      setState({ loading: false, customer: null, error: "" });
-      return;
-    }
-    let cancelled = false;
-    setState((s) => ({ ...s, loading: true, error: "" }));
-    getCustomer(businessId, customerId).then(({ data, error }) => {
-      if (!cancelled)
-        setState({
-          loading: false,
-          customer: data ?? null,
-          error: error?.message ?? "",
-        });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, customerId, validId, page, reload]);
+  // The customer row. `page` is a param only so it refetches on a ledger page change, as before.
+  const state = useListQuery(
+    fetchCustomer,
+    { businessId, customerId, page },
+    INITIAL_CUSTOMER,
+    { enabled: validId },
+  );
 
   // The ledger (read-only here; recording payments arrives in Step 10).
-  const [ledger, setLedger] = useState({
-    loading: true,
-    rows: [],
-    total: 0,
-    error: "",
-  });
-  useEffect(() => {
-    if (!validId) return;
-    let cancelled = false;
-    setLedger((s) => ({ ...s, loading: true, error: "" }));
-    listLedger({ businessId, customerId, page }).then((result) => {
-      if (!cancelled) setLedger({ loading: false, ...result });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, customerId, validId, page]);
+  const ledger = useListQuery(
+    listLedger,
+    { businessId, customerId, page },
+    INITIAL_LEDGER,
+    { enabled: validId },
+  );
 
   const c = state.customer;
 
@@ -103,7 +81,7 @@ export default function CustomerProfilePage() {
     setEditing(false);
     setDeactivating(false);
     setNotice(message);
-    setReload((n) => n + 1);
+    state.reload();
   }
 
   const balanceWords = (v) =>
@@ -127,7 +105,7 @@ export default function CustomerProfilePage() {
       },
       { replace: true },
     );
-    setReload((n) => n + 1);
+    state.reload();
   }
 
   function afterPayment(result) {
